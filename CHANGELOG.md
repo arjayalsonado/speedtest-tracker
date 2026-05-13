@@ -17,6 +17,8 @@ This file tracks consolidated repository changes for the MikroTik Lite experimen
 - `docker/mikrotik-lite/Dockerfile.mikrotik-lite`
 - `docker/mikrotik-lite/entrypoint.sh`
 - `docker/mikrotik-lite/.env.mikrotik-lite`
+- `docker/mikrotik-lite/nginx.conf`
+- `docker/mikrotik-lite/php-fpm.conf`
 - `config/speedtest-lite.php`
 - `app/Support/SpeedtestLite/IspProfile.php`
 - `app/Support/SpeedtestLite/IspProfiles.php`
@@ -40,3 +42,20 @@ This file tracks consolidated repository changes for the MikroTik Lite experimen
 - `docker/8.4/` remains the repo's existing main Docker configuration.
 - The experimental image is intentionally built from `docker/mikrotik-lite/Dockerfile.mikrotik-lite`.
 - The branch-specific changelog in `docker/mikrotik-lite/CHANGELOG.md` remains useful for Docker/build-specific detail.
+- The archive documentation file is now `speedtest-tracker-mikrotik-lite-change-archive-v1.2.1-multi-isp-experimental.md`.
+
+## 2026-05-14T17:30Z — `REF-20260514-01`
+
+### Summary
+
+- Appended changelog tracking for new Docker config files without overwriting the existing entry above.
+- Added a timestamped reference ID for this update.
+
+### Added
+
+- Changelog append-only update marker: `REF-20260514-01`
+
+### Notes
+
+- This entry preserves all prior content in the changelog.
+- Future updates should follow this append-only pattern with a new timestamped reference ID.

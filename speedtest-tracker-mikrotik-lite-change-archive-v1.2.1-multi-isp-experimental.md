@@ -1,16 +1,16 @@
-# Speedtest Tracker MikroTik Lite — v1.2 Multi-ISP Experimental Refactor
+# Speedtest Tracker MikroTik Lite — v1.2.1 Multi-ISP Experimental Refactor
 
-Status: **Corrected experimental branch design and code patch package**  
+Status: **Corrected experimental branch design, repo recheck addendum, and code patch package**  
 Previous archive: **v1.1 Multi-ISP Experimental Refactor**  
 Baseline retained: **MikroTik Lite Standard** single-ISP build from v0.8/v0.9  
 New branch: **`mikrotik-lite-multi-isp-exp`**  
-Date: **2026-05-13**
+Date: **2026-05-14**
 
 ---
 
-## 0. v1.2 correction summary
+## 0. v1.2.1 correction summary
 
-This v1.2 archive supersedes the v1.1 multi-ISP markdown for code assembly.
+This v1.2.1 archive supersedes the v1.1 multi-ISP markdown for code assembly.
 
 The v1.1 architecture remains accepted:
 
@@ -28,9 +28,9 @@ Speedtest execution binds to the selected profile/source IP
 
 However, the v1.1 code package needed corrections after checking the current public `mikrotik-lite-multi-isp-exp` branch.
 
-### Corrections accepted in v1.2
+### Corrections accepted in v1.2.1
 
-| Area | v1.1 issue | v1.2 correction |
+| Area | v1.1 issue | v1.2.1 correction |
 |---|---|---|
 | Upstream action namespace | Used `App\Actions\Speedtest\CheckForScheduledSpeedtests` | Use `App\Actions\CheckForScheduledSpeedtests` |
 | Ookla binding option | Assumed setting `speedtest.interface` could support `--ip` without patching the job | Patch `RunSpeedtestJob.php` to use `SPEEDTEST_LITE_BIND_OPTION` and allow `--interface` or `--ip` |
@@ -41,7 +41,7 @@ However, the v1.1 code package needed corrections after checking the current pub
 
 ### Current public branch observation
 
-At the time of this archive update, `mikrotik-lite-multi-isp-exp` exists, but the custom MikroTik Lite / multi-ISP files have not yet been applied. The current upstream class location and scheduler/binding behavior were checked before preparing this v1.2 patch.
+At the time of this archive update, `mikrotik-lite-multi-isp-exp` exists, but the custom MikroTik Lite / multi-ISP files have not yet been applied. The current upstream class location and scheduler/binding behavior were checked before preparing this v1.2.1 patch.
 
 ---
 
@@ -105,7 +105,7 @@ RouterOS owns the VETH IP assignment. The container should not mutate its networ
 
 ## 3. Implementation boundary
 
-This v1.2 patch is the **multi-ISP execution foundation**.
+This v1.2.1 patch is the **multi-ISP execution foundation**.
 
 It does **not** include the full dashboard/UI refactor yet. Result rows gain profile metadata so a later v1.3 UI pass can add:
 
@@ -114,7 +114,7 @@ It does **not** include the full dashboard/UI refactor yet. Result rows gain pro
 - profile-specific chart series
 - profile-specific export filters
 
-The implementation intentionally reuses Speedtest Tracker's existing execution flow where possible. The only upstream execution patch required for v1.2 is in `app/Jobs/Ookla/RunSpeedtestJob.php` so the binding flag can be selected dynamically.
+The implementation intentionally reuses Speedtest Tracker's existing execution flow where possible. The only upstream execution patch required for v1.2.1 is in `app/Jobs/Ookla/RunSpeedtestJob.php` so the binding flag can be selected dynamically.
 
 ---
 
@@ -131,7 +131,7 @@ The implementation intentionally reuses Speedtest Tracker's existing execution f
 | Command | Add `speedtest-lite:run-isp-profile {profile}` | Runs selected profile with source binding | Medium |
 | Ookla job | Patch binding argument from hardcoded `--interface` to configurable `--interface` / `--ip` | Enables source-IP binding tests without rewriting parser | Medium |
 | Results DB | Add profile metadata columns to `results` | Allows later UI filtering/graph split | Medium |
-| UI | Not implemented in v1.2 | Keep source refactor minimal first | Known gap |
+| UI | Not implemented in v1.2.1 | Keep source refactor minimal first | Known gap |
 
 ---
 
@@ -187,7 +187,7 @@ SPEEDTEST_LITE_ISP_PROFILES=isp1,isp2
 SPEEDTEST_LITE_VALIDATE_SOURCE_IPS=true
 SPEEDTEST_LITE_BIND_INTERFACE=eth0
 
-# v1.2 correction:
+# v1.2.1 correction:
 # Current upstream app passes speedtest.interface as --interface by default.
 # This experimental branch patches RunSpeedtestJob.php so this can be --interface or --ip.
 # Start with --ip for source-IP binding. If the bundled Ookla CLI rejects it, test --interface.
@@ -294,9 +294,9 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["sh", "-c", "php-fpm -y /usr/local/etc/php-fpm.d/www.conf & exec nginx -g 'daemon off;'"]
 ```
 
-### v1.2 Dockerfile rule
+### v1.2.1 Dockerfile rule
 
-Do not replace this with the shorter v1.1 Dockerfile. The accepted v0.9 baseline keeps `sqlite-libs`, `ca-certificates`, and `tzdata`; v1.2 only adds `iproute2`.
+Do not replace this with the shorter v1.1 Dockerfile. The accepted v0.9 baseline keeps `sqlite-libs`, `ca-certificates`, and `tzdata`; v1.2.1 only adds `iproute2`.
 
 ---
 
@@ -704,7 +704,7 @@ class ValidateIspProfiles extends Command
 
 Create new file.
 
-v1.2 correction: the current upstream branch uses `App\Actions\CheckForScheduledSpeedtests`, not `App\Actions\Speedtest\CheckForScheduledSpeedtests`.
+v1.2.1 correction: the current upstream branch uses `App\Actions\CheckForScheduledSpeedtests`, not `App\Actions\Speedtest\CheckForScheduledSpeedtests`.
 
 ```php
 <?php
@@ -808,7 +808,7 @@ For source-IP binding, the experimental branch needs to test/use:
 --ip=192.168.99.250
 ```
 
-### v1.2 patch
+### v1.2.1 patch
 
 Inside `handle()`, before `$command = array_filter([...])`, add:
 
@@ -893,7 +893,7 @@ and retest manually.
 
 Do **not** replace the whole file blindly.
 
-v1.2 correction: preserve existing upstream scheduled maintenance tasks such as model pruning, queue pruning, and SQLite vacuum. Replace only the scheduled speedtest block.
+v1.2.1 correction: preserve existing upstream scheduled maintenance tasks such as model pruning, queue pruning, and SQLite vacuum. Replace only the scheduled speedtest block.
 
 ### Existing block to replace
 
@@ -1017,7 +1017,7 @@ If routing is handled by TP-Link ER605 instead, create policy routing rules by s
 ```bash
 docker buildx build \
   --platform linux/arm64 \
-  -f Dockerfile.mikrotik-lite \
+  -f docker/mikrotik-lite/Dockerfile.mikrotik-lite \
   --tag your_docker_username/speedtest-tracker:1.14.1-mikrotik-lite-multi-isp-exp-arm64 \
   --tag your_docker_username/speedtest-tracker:multi-isp-exp-arm64 \
   --push \
@@ -1088,7 +1088,7 @@ isp2 | ISP 2 | 192.168.99.251
 ## 10. Known risks / QA focus
 
 1. **Source binding must be proven on the bundled Ookla CLI.**  
-   v1.2 patches the app so `--ip` or `--interface` can be selected. QA must confirm which flag works in the actual image.
+   v1.2.1 patches the app so `--ip` or `--interface` can be selected. QA must confirm which flag works in the actual image.
 
 2. **Result tagging assumes synchronous execution.**  
    The Lite build uses `QUEUE_CONNECTION=sync`. If upstream behavior changes to async execution, the command may return before a result is created.
@@ -1110,9 +1110,9 @@ isp2 | ISP 2 | 192.168.99.251
 
 ---
 
-## 11. v1.2 final summary for reviewer
+## 11. v1.2.1 final summary for reviewer
 
-The v1.2 refactor keeps the v1.1 architecture but corrects the code package against the actual current upstream branch. The critical namespace is `App\Actions\CheckForScheduledSpeedtests`. The existing Ookla job hardcodes `--interface`, so v1.2 adds a small configurable bind-option patch to support `--ip` source binding tests. The Dockerfile must remain based on the accepted v0.9 runtime package baseline with `iproute2` added. The scheduler patch should preserve existing upstream maintenance tasks and only replace the scheduled speedtest block.
+The v1.2.1 refactor keeps the v1.1 architecture but corrects the code package against the actual current upstream branch. The critical namespace is `App\Actions\CheckForScheduledSpeedtests`. The existing Ookla job hardcodes `--interface`, so v1.2.1 adds a small configurable bind-option patch to support `--ip` source binding tests. The Dockerfile must remain based on the accepted v0.9 runtime package baseline with `iproute2` added. The scheduler patch should preserve existing upstream maintenance tasks and only replace the scheduled speedtest block.
 
 Status: **accepted for code assembly and QA testing**.  
 Status is **not production-final** until source binding, result tagging, RouterOS VETH visibility, and memory behavior are validated on the hAP ax³.
@@ -1125,7 +1125,7 @@ Status is **not production-final** until source binding, result tagging, RouterO
 
 Initial multi-ISP experimental archive. Accepted architecture, but code package contained namespace, Dockerfile, scheduler replacement, and binding-option assumptions requiring correction.
 
-### v1.2
+### v1.2.1
 
 Corrected code package after checking the current public branch:
 
