@@ -1149,3 +1149,95 @@ Corrected code package after checking the current public branch:
 
 - `REF-20260514-02`
 - Time: `2026-05-14T17:45Z`
+
+## 14. v1.2.1 file format validation blocker reported and verified
+
+### Reported blocker
+
+The reviewer noted that files appeared to have collapsed lines / missing proper newlines:
+
+- `Dockerfile.mikrotik-lite`: appeared as only 2 lines
+- `nginx.conf`: appeared as only 1 line
+- `php-fpm.conf`: appeared as only 1 line
+- `entrypoint.sh`: appeared as only 4 lines
+
+### Verification results
+
+Re-checked file line counts via `wc -l`:
+
+```
+  66 docker/mikrotik-lite/Dockerfile.mikrotik-lite
+  51 docker/mikrotik-lite/nginx.conf
+  28 docker/mikrotik-lite/php-fpm.conf
+ 124 docker/mikrotik-lite/entrypoint.sh
+```
+
+All files have proper line breaks and structure confirmed via `head` inspection. The files contain:
+
+- Proper Dockerfile syntax with each instruction on separate lines
+- nginx.conf with proper sections and indentation
+- php-fpm.conf with proper configuration blocks
+- entrypoint.sh with proper shell script structure and keywords on separate lines
+
+### Resolution
+
+File format blocker was either display/rendering issue or prior creation issue now resolved. Files are valid and ready for build syntax validation.
+
+### Revision reference
+
+- `REF-20260514-03`
+- Time: `2026-05-14T17:50Z`
+
+## 15. v1.2.1 PHP zip extension blocker fixed
+
+### Blocker
+
+The Docker build failed during `composer install --no-dev --optimize-autoloader --no-interaction --no-scripts` in the builder stage because `openspout/openspout` requires `ext-zip`.
+
+### Fix applied
+
+- Added `libzip-dev` to the builder stage package install block.
+- Added `zip` to `docker-php-ext-install` in the builder stage.
+- Added `RUN php -m | grep -i zip` after extension installation for build-time validation.
+- Added `libzip` to the final runtime package list so the zip runtime library is available.
+
+### Verification commands
+
+Run from repo root:
+
+```bash
+grep -n "libzip\|docker-php-ext-install\|php -m" docker/mikrotik-lite/Dockerfile.mikrotik-lite
+```
+
+Expected includes:
+
+- `libzip-dev`
+- `docker-php-ext-install pdo pdo_sqlite mbstring exif intl pcntl sockets zip`
+- `php -m | grep -i zip`
+- `libzip`
+
+Then rebuild without cache:
+
+```bash
+docker buildx build \
+  --no-cache \
+  --platform linux/arm64 \
+  -f docker/mikrotik-lite/Dockerfile.mikrotik-lite \
+  --tag your_docker_username/speedtest-tracker:multi-isp-exp-arm64 \
+  --load \
+  .
+```
+
+Expected output includes:
+
+```text
+RUN php -m | grep -i zip
+zip
+```
+
+And composer should continue past the previous `ext-zip` blocker.
+
+### Revision reference
+
+- `REF-20260514-04`
+- Time: `2026-05-14T18:00Z`

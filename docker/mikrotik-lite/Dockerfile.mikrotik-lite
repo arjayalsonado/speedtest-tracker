@@ -8,9 +8,11 @@ RUN apk add --no-cache \
     libxml2-dev \
     oniguruma-dev \
     sqlite-dev \
+    libzip-dev \
     linux-headers
 
-RUN docker-php-ext-install pdo pdo_sqlite mbstring exif intl pcntl sockets
+RUN docker-php-ext-install pdo pdo_sqlite mbstring exif intl pcntl sockets zip
+RUN php -m | grep -i zip
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -35,6 +37,7 @@ RUN apk add --no-cache \
     icu-libs \
     libxml2 \
     oniguruma \
+    libzip \
     busybox-suid \
     ca-certificates \
     tzdata \
