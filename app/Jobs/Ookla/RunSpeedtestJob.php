@@ -56,6 +56,15 @@ class RunSpeedtestJob implements ShouldQueue
 
         SpeedtestRunning::dispatch($this->result);
 
+        $bindValue = config('speedtest.interface');
+        $bindOption = config('speedtest-lite.bind_option', '--interface');
+
+        if (! in_array($bindOption, ['--interface', '--ip'], true)) {
+            $bindOption = '--interface';
+        }
+
+        $bindArgument = $bindValue ? "{$bindOption}={$bindValue}" : null;
+
         $command = array_filter([
             'speedtest',
             '--accept-license',
@@ -63,7 +72,7 @@ class RunSpeedtestJob implements ShouldQueue
             '--selection-details',
             '--format=json',
             $this->result->server_id ? '--server-id='.$this->result->server_id : null,
-            config('speedtest.interface') ? '--interface='.config('speedtest.interface') : null,
+            $bindArgument,
         ]);
 
         $process = new Process($command);

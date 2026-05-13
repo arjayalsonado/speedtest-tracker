@@ -1,0 +1,66 @@
+# ==========================================
+# STAGE 1: Compilation & Dependency Fetching
+# ==========================================
+FROM php:8.4-fpm-alpine3.22 AS builder
+
+RUN apk add --no-cache \
+    icu-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    sqlite-dev \
+    linux-headers
+
+RUN docker-php-ext-install pdo pdo_sqlite mbstring exif intl pcntl sockets
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+COPY . /app
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# ==========================================
+# STAGE 2: Minimal Production Image Runtime
+# ==========================================
+FROM php:8.4-fpm-alpine3.22
+
+RUN apk add --no-cache \
+    nginx \
+    sqlite \
+    sqlite-libs \
+    shadow \
+    curl \
+    bash \
+    jq \
+    icu-libs \
+    libxml2 \
+    oniguruma \
+    busybox-suid \
+    ca-certificates \
+    tzdata \
+    iproute2
+
+RUN getent group www-data || groupadd -g 82 www-data; \
+    getent passwd www-data || useradd -u 82 -g www-data -m -s /sbin/nologin www-data; \
+    mkdir -p /run/nginx /var/lib/nginx/tmp /var/log/nginx /config; \
+    chown -R www-data:www-data /run/nginx /var/lib/nginx /var/log/nginx /config
+
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=builder /app /var/www/html
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/mikrotik-lite/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/mikrotik-lite/.env.mikrotik-lite /var/www/html/.env.mikrotik-lite
+
+RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    mkdir -p /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html /config
+
+WORKDIR /var/www/html
+VOLUME ["/config"]
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["sh", "-c", "php-fpm -y /usr/local/etc/php-fpm.d/www.conf & exec nginx -g 'daemon off;'" ]
