@@ -1135,3 +1135,17 @@ Corrected code package after checking the current public branch:
 - Changed `routes/console.php` guidance to patch only the scheduled speedtest block.
 - Downgraded final status wording from production-ready to QA/testing-ready.
 - Marked exact RouterOS VETH multi-address CLI syntax as validation-required.
+
+## 13. v1.2.1 build blocker resolution
+
+- Confirmed `docker/mikrotik-lite/nginx.conf` and `docker/mikrotik-lite/php-fpm.conf` now exist in the experimental build directory.
+- Confirmed `docker/mikrotik-lite/Dockerfile.mikrotik-lite` uses the correct relative copy paths:
+  - `COPY docker/mikrotik-lite/nginx.conf /etc/nginx/nginx.conf`
+  - `COPY docker/mikrotik-lite/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf`
+- Confirmed the file name is already updated to `speedtest-tracker-mikrotik-lite-change-archive-v1.2.1-multi-isp-experimental.md`.
+- Status: Docker config blocker resolved; next validation step is static build and syntax validation.
+
+### Revision reference
+
+- `REF-20260514-02`
+- Time: `2026-05-14T17:45Z`
