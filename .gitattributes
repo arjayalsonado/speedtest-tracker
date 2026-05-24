@@ -7,6 +7,9 @@
 *.md diff=markdown
 *.php diff=php
 *.sh text eol=lf
+docker/mikrotik-lite/.env.mikrotik-lite text eol=lf
+docker/mikrotik-lite/*.conf text eol=lf
+docker/mikrotik-lite/Dockerfile.mikrotik-lite text eol=lf
 docker/mikrotik-lite/entrypoint.sh text eol=lf
 
 /.github export-ignore
