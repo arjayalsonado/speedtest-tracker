@@ -11,6 +11,24 @@ bool_true() {
     esac
 }
 
+load_persistent_env() {
+    declare -A runtime_env=()
+
+    while IFS='=' read -r name value; do
+        runtime_env["$name"]="$value"
+    done < <(env)
+
+    set -a
+    # shellcheck disable=SC1091
+    . "$CONFIG_DIR/.env" || true
+    set +a
+
+    # Docker/runtime-provided environment values should override persisted .env values.
+    for name in "${!runtime_env[@]}"; do
+        export "$name=${runtime_env[$name]}"
+    done
+}
+
 cd "$APP_DIR"
 
 echo "==> Initializing MikroTik Lite Volume Layout..."
@@ -38,11 +56,8 @@ ln -sfn "$CONFIG_DIR/.env" "$APP_DIR/.env"
 rm -rf "$APP_DIR/storage"
 ln -sfn "$CONFIG_DIR/storage" "$APP_DIR/storage"
 
-# Load persistent env for shell-level validation variables.
-set -a
-# shellcheck disable=SC1091
-. "$CONFIG_DIR/.env" || true
-set +a
+# Load persistent env for shell-level validation variables while preserving Docker -e overrides.
+load_persistent_env
 
 if [ ! -f "$CONFIG_DIR/database/database.sqlite" ]; then
     echo "==> Creating persistent SQLite database file..."
@@ -115,7 +130,53 @@ fi
 
 echo "==> Initializing internal scheduler cron tasks..."
 MIKROTIK_CRON_SCHEDULE="${MIKROTIK_CRON_SCHEDULE:-*/15 * * * *}"
-printf '%s cd /var/www/html && php artisan schedule:run --no-interaction >/proc/1/fd/1 2>/proc/1/fd/2
+cat > /tmp/run-scheduler-once.sh <<'EOF'
+#!/bin/sh
+set -eu
+
+APP_DIR="/var/www/html"
+LOCK_DIR="/tmp/speedtest-lite-schedule-run.lock"
+LOCK_PID_FILE="$LOCK_DIR/pid"
+
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    if [ -f "$LOCK_PID_FILE" ]; then
+        old_pid="$(cat "$LOCK_PID_FILE" 2>/dev/null || true)"
+        if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null; then
+            if ps -o stat= -p "$old_pid" 2>/dev/null | grep -q Z; then
+                echo "NOTICE: stale zombie schedule lock found for pid ${old_pid}; clearing it."
+                rm -rf "$LOCK_DIR"
+            else
+                echo "NOTICE: previous schedule:run is still active for pid ${old_pid}; skipping this tick."
+                exit 0
+            fi
+        else
+            echo "NOTICE: stale schedule lock found; clearing it."
+            rm -rf "$LOCK_DIR"
+        fi
+    else
+        echo "NOTICE: schedule lock without pid found; clearing it."
+        rm -rf "$LOCK_DIR"
+    fi
+
+    if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+        echo "NOTICE: previous schedule:run is still active; skipping this tick."
+        exit 0
+    fi
+fi
+
+echo "$$" > "$LOCK_PID_FILE"
+
+cleanup() {
+    rm -rf "$LOCK_DIR"
+}
+trap cleanup EXIT INT TERM
+
+cd "$APP_DIR"
+php artisan schedule:run --no-interaction
+EOF
+chmod +x /tmp/run-scheduler-once.sh
+
+printf '%s /tmp/run-scheduler-once.sh >/proc/1/fd/1 2>/proc/1/fd/2
 ' "$MIKROTIK_CRON_SCHEDULE" > /tmp/crontab
 crontab /tmp/crontab
 crond -b -l 8

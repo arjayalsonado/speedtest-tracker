@@ -9,7 +9,9 @@ RUN apk add --no-cache \
     oniguruma-dev \
     sqlite-dev \
     libzip-dev \
-    linux-headers
+    linux-headers \
+    nodejs \
+    npm
 
 RUN docker-php-ext-install pdo pdo_sqlite mbstring exif intl pcntl sockets zip
 RUN php -m | grep -i zip
@@ -19,12 +21,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 COPY . /app
+
+# Drop generated Laravel manifests from the build context. Local dev caches can
+# reference dev-only packages such as Laravel Boost, which are absent with --no-dev.
+RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+RUN npm ci --no-audit --no-fund && \
+    npm run build && \
+    rm -rf node_modules
 
 # ==========================================
 # STAGE 2: Minimal Production Image Runtime
 # ==========================================
 FROM php:8.4-fpm-alpine3.22
+
+ARG SPEEDTEST_VERSION=1.2.0
 
 RUN apk add --no-cache \
     nginx \
@@ -41,7 +54,20 @@ RUN apk add --no-cache \
     busybox-suid \
     ca-certificates \
     tzdata \
+    gcompat \
     iproute2
+
+RUN ARCH="$(uname -m)" && \
+    case "$ARCH" in \
+        x86_64) SPEEDTEST_PLATFORM="x86_64" ;; \
+        aarch64) SPEEDTEST_PLATFORM="aarch64" ;; \
+        *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -o /tmp/speedtest-cli.tgz -L \
+        "https://install.speedtest.net/app/cli/ookla-speedtest-${SPEEDTEST_VERSION}-linux-${SPEEDTEST_PLATFORM}.tgz" && \
+    tar -xzf /tmp/speedtest-cli.tgz -C /usr/local/bin speedtest && \
+    chmod +x /usr/local/bin/speedtest && \
+    rm -f /tmp/speedtest-cli.tgz
 
 RUN getent group www-data || groupadd -g 82 www-data; \
     getent passwd www-data || useradd -u 82 -g www-data -m -s /sbin/nologin www-data; \

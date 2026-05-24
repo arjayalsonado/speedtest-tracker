@@ -2,6 +2,12 @@
 
 Speedtest Tracker is a self-hosted application that monitors the performance and uptime of your internet connection.
 
+## Fork Variant: MikroTik Lite Multi-Interface Build
+
+This fork includes an experimental ARM64 MikroTik Lite build for source-IP-bound speedtests across multiple profiles. The primary validated target is MikroTik hAP ax3 RouterOS containers, but the model also applies to other ARM64 container hosts that expose multiple source IPs or interfaces.
+
+See [docker/mikrotik-lite/README.md](docker/mikrotik-lite/README.md) for deployment notes, image tags, validation commands, and known build status.
+
 ![Dashboard](.github/screenshots/dashboard.png)
 
 ## Features

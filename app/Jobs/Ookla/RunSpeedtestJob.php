@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
@@ -24,7 +25,7 @@ class RunSpeedtestJob implements ShouldQueue
      *
      * @var int
      */
-    public $timeout = 120;
+    public $timeout = 300;
 
     /**
      * Create a new job instance.
@@ -65,6 +66,13 @@ class RunSpeedtestJob implements ShouldQueue
 
         $bindArgument = $bindValue ? "{$bindOption}={$bindValue}" : null;
 
+        Log::info('Running Ookla speedtest command.', [
+            'result_id' => $this->result->getKey(),
+            'bind_option' => $bindOption,
+            'bind_value' => $bindValue,
+            'bind_argument' => $bindArgument,
+        ]);
+
         $command = array_filter([
             'speedtest',
             '--accept-license',
@@ -76,6 +84,7 @@ class RunSpeedtestJob implements ShouldQueue
         ]);
 
         $process = new Process($command);
+        $process->setTimeout(300);
 
         try {
             $process->mustRun();
