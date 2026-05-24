@@ -1,10 +1,13 @@
 * text=auto
+.gitattributes text eol=lf
 
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
+*.sh text eol=lf
+docker/mikrotik-lite/entrypoint.sh text eol=lf
 
 /.github export-ignore
 CHANGELOG.md export-ignore
