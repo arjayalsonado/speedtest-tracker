@@ -105,6 +105,11 @@ if ! grep -q '^APP_KEY=base64:' "$CONFIG_DIR/.env"; then
     php artisan key:generate --force --no-interaction || true
 fi
 
+# key:generate updates the .env file, but a blank APP_KEY from the template
+# may still be exported in this shell. Reload without carrying that stale value.
+unset APP_KEY
+load_persistent_env
+
 echo "==> Flushing old deployment state caches..."
 php artisan package:discover --no-interaction || true
 php artisan config:clear || true
