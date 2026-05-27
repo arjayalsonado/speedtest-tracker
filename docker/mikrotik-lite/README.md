@@ -42,11 +42,10 @@ Planned next patch build:
 
 Planned b1.7 cleanup items:
 
-- Remove PHP-FPM pool setting `php_admin_value[opcache.enable_cli] = 1`.
-- Keep `php_admin_value[opcache.enable] = 1`.
+- Remove PHP-FPM pool-level OPcache enablement settings that cause startup warnings.
 - Keep the 20-minute profile schedule defaults.
-- Add a MikroTik Lite guard for GitHub latest-version checks so dashboard rendering does not block on GitHub timeouts.
 - Add a 5-minute scheduler startup grace window so speed tests do not begin during container warmup.
+- Keep upstream Speedtest Tracker version checks unchanged. A separate Lite-build-aware version check is future feature work.
 
 ## Runtime Model
 
@@ -68,6 +67,7 @@ SPEEDTEST_LITE_MODE=multi_isp_experimental
 SPEEDTEST_LITE_BIND_OPTION=--ip
 SPEEDTEST_LITE_BIND_INTERFACE=<in-container-interface-name>
 SPEEDTEST_LITE_ISP_PROFILES=isp1,isp2
+MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS=300
 
 TZ=Asia/Manila
 APP_TIMEZONE=UTC

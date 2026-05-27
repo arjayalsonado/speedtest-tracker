@@ -281,4 +281,24 @@ Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-6-BASELINE`
 
 - Add a 5-minute scheduler startup grace window.
 - Remove or relocate the OPcache CLI setting that causes startup warnings.
-- Disable or redirect GitHub latest-version checks for MikroTik Lite.
+- Keep upstream Speedtest Tracker version checks unchanged.
+- Track Lite-build-aware version checking as future feature work.
+
+## 2026-05-27 - b1.7 Runtime Stabilization
+
+Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-7-RUNTIME-STABILIZATION`
+
+### Changes
+
+- Added configurable scheduler startup grace:
+  - `MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS=300`
+- The generated `/tmp/run-scheduler-once.sh` wrapper skips scheduler execution while the container is inside the grace window.
+- Removed PHP-FPM pool-level OPcache enablement settings that caused startup warnings:
+  - `php_admin_value[opcache.enable] = 1`
+  - `php_admin_value[opcache.enable_cli] = 1`
+- OPcache remains available through the PHP image defaults.
+
+### Notes
+
+- Upstream Speedtest Tracker version checks remain unchanged.
+- A separate Lite-build-aware version check is deferred to a future feature line.

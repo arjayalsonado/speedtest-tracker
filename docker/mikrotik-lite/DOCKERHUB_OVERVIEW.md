@@ -127,12 +127,12 @@ Runtime stabilization:
 
 - Add a scheduler startup grace window to avoid speed tests during container warmup.
 - Remove or relocate the OPcache CLI setting that causes startup warnings.
-- Disable or redirect GitHub latest-version checks for MikroTik Lite.
 - Continue using configurable staggered profile schedules by default.
 
 Future feature line:
 
 - Add profile-aware dashboard and results UI so multi-profile data can be viewed and compared directly in the web interface.
+- Add a Lite-build-aware version check alongside the upstream Speedtest Tracker version check.
 
 ## Typical RouterOS Use Case
 

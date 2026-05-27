@@ -135,6 +135,10 @@ fi
 
 echo "==> Initializing internal scheduler cron tasks..."
 MIKROTIK_CRON_SCHEDULE="${MIKROTIK_CRON_SCHEDULE:-*/15 * * * *}"
+MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS="${MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS:-300}"
+date +%s > /tmp/speedtest-lite-container-started-at
+printf '%s\n' "$MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS" > /tmp/speedtest-lite-scheduler-grace-seconds
+
 cat > /tmp/run-scheduler-once.sh <<'EOF'
 #!/bin/sh
 set -eu
@@ -142,6 +146,28 @@ set -eu
 APP_DIR="/var/www/html"
 LOCK_DIR="/tmp/speedtest-lite-schedule-run.lock"
 LOCK_PID_FILE="$LOCK_DIR/pid"
+STARTED_AT_FILE="/tmp/speedtest-lite-container-started-at"
+GRACE_SECONDS_FILE="/tmp/speedtest-lite-scheduler-grace-seconds"
+
+started_at="$(cat "$STARTED_AT_FILE" 2>/dev/null || echo 0)"
+grace_seconds="$(cat "$GRACE_SECONDS_FILE" 2>/dev/null || echo 300)"
+
+case "$started_at" in
+    *[!0-9]*|'') started_at=0 ;;
+esac
+
+case "$grace_seconds" in
+    *[!0-9]*|'') grace_seconds=300 ;;
+esac
+
+now="$(date +%s)"
+elapsed=$((now - started_at))
+
+if [ "$started_at" -gt 0 ] && [ "$grace_seconds" -gt 0 ] && [ "$elapsed" -lt "$grace_seconds" ]; then
+    remaining=$((grace_seconds - elapsed))
+    echo "NOTICE: scheduler startup grace window active; skipping this tick (${remaining}s remaining)."
+    exit 0
+fi
 
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
     if [ -f "$LOCK_PID_FILE" ]; then
