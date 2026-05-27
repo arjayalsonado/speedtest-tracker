@@ -1890,3 +1890,115 @@ Remaining risks and follow-ups:
   - remove/fix OPcache CLI startup warning
   - disable or redirect GitHub latest-version checks for MikroTik Lite
 - Later standalone repository publishing gate remains pending.
+
+## 2026-05-27 21:10 +08:00 - b1.7 Runtime Stabilization Candidate
+
+Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-7-RUNTIME-STABILIZATION`
+
+Project: `Container/speedtest-tracker`
+
+Goal:
+
+- Prepare `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64` as a narrow runtime stabilization patch on top of b1.6.
+- Avoid changing the upstream Speedtest Tracker latest-version check in this patch.
+- Keep Lite-build-aware version checking as a future feature instead of mixing it into the stabilization patch.
+
+Files changed:
+
+- `docker/mikrotik-lite/entrypoint.sh`
+- `docker/mikrotik-lite/.env.mikrotik-lite`
+- `docker/mikrotik-lite/php-fpm.conf`
+- `docker/mikrotik-lite/README.md`
+- `docker/mikrotik-lite/DOCKERHUB_OVERVIEW.md`
+- `CHANGELOG.md`
+- `docker/mikrotik-lite/CHANGELOG.md`
+
+Adopted changes:
+
+- Added configurable scheduler startup grace:
+  - `MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS=300`
+  - default behavior skips early scheduler ticks for the first 5 minutes after container start
+  - intended to reduce boot-time contention between cache warmup, php-fpm startup, UI access, and speedtest execution
+- Removed PHP-FPM pool-level OPcache enablement settings:
+  - `php_admin_value[opcache.enable] = 1`
+  - `php_admin_value[opcache.enable_cli] = 1`
+  - OPcache remains available through PHP image defaults
+- Preserved upstream latest-version behavior for now.
+- Moved Lite-specific image/version checking to future feature scope.
+
+Build record:
+
+- Image tag: `rvncore/speedtest-tracker:0.1.1-b1.7-mikrotik-lite-multi-isp-arm64`
+- Source commit: `476a216`
+- Local image ID: `sha256:1aeeffbbcc68955120f332c740b3d2951ec13356d7f684156aec1892c9f17ba3`
+- Created: `2026-05-27T12:57:56.316933677Z`
+- Architecture: `arm64`
+- Local image size reported by Docker: `131472427`
+
+Validation performed:
+
+- Local Docker build completed with `docker buildx build --platform linux/arm64 --provenance=false --load`.
+- Local default-entrypoint container started successfully.
+- Startup grace validation used `MIKROTIK_CRON_SCHEDULE="* * * * *"`.
+- Logs confirmed scheduler grace behavior:
+  - `NOTICE: scheduler startup grace window active; skipping this tick (253s remaining).`
+- Logs no longer showed:
+  - `Zend OPcache can't be temporary enabled`
+- Vite manifest check passed:
+  - `public/build/manifest.json`
+- `php artisan schedule:list` rendered expected maintenance and profile schedules.
+- Local HTTP smoke check passed:
+  - first request returned `302` to `/getting-started`
+  - follow-up returned `HTTP/1.1 200 OK`
+
+Observed local-only nuance:
+
+- Local Docker Desktop/WSL ARM64 emulation logged:
+  - `nginx: io_setup() failed (38: Function not implemented)`
+- HTTP and php-fpm still served normally after the message.
+- Treat as a local emulation observation unless reproduced on RouterOS.
+
+Reviewer feedback:
+
+- No Copilot review was requested for this narrow runtime stabilization patch.
+- Reason: the patch is small, operational, and directly validated with local image smoke checks.
+
+Feedback accepted:
+
+- Not applicable.
+
+Feedback rejected:
+
+- Not applicable.
+
+Security follow-up added:
+
+- Docker Scout reported high/critical APK package findings against the b1.7 image candidate.
+- Packages shown in the local scan/screenshot context:
+  - `nginx 1.28.3-r1`
+  - `tar 1.35-r3`
+  - `curl 8.14.1-r2`
+  - `jq 1.8.1-r0`
+  - `sqlite 3.49.2-r1`
+- Pending action:
+  - review Docker Scout recommendations
+  - check whether Alpine patched packages or a newer base image are available
+  - rebuild after patched APK/base image updates if remediation is available
+  - document any accepted residual runtime risk if fixes are not yet available
+
+Remaining risks and follow-ups:
+
+- Push source commit and immutable b1.7 image tag only after accepting local validation.
+- Do not promote `latest` or moving tags until RouterOS validates b1.7.
+- RouterOS validation still needed:
+  - default entrypoint boot
+  - no OPcache startup warning
+  - scheduler grace messages on early ticks
+  - `speedtest-lite:validate-isp-profiles`
+  - `php artisan schedule:list`
+  - local HTTP `200 OK`
+  - at least one automatic profile run after the grace window
+- Future feature line remains:
+  - profile-aware dashboard/results UI
+  - Lite-build-aware version check alongside upstream Speedtest Tracker version check
+  - standalone repository publishing cleanup
