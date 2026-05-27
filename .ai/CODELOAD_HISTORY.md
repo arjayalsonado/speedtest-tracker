@@ -2002,3 +2002,32 @@ Remaining risks and follow-ups:
   - profile-aware dashboard/results UI
   - Lite-build-aware version check alongside upstream Speedtest Tracker version check
   - standalone repository publishing cleanup
+
+### b1.7 RouterOS Acceptance Update - 2026-05-27 21:50 +08:00
+
+- Immutable RouterOS test tag used:
+  - `rvncore/speedtest-tracker:0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64`
+- RouterOS test container name:
+  - `app-speed-b17-c7ab9c6`
+- RouterOS validation passed:
+  - scheduler startup grace logged successfully
+  - no OPcache startup warning observed in the reported RouterOS test output
+  - `speedtest-lite:validate-isp-profiles` passed for both profiles
+  - `php artisan schedule:list` showed the expected 20-minute staggered profile schedules
+  - Vite manifest existed
+  - local HTTP check returned `HTTP/1.1 200 OK`
+  - automatic scheduled run completed after the grace window:
+    - `2284|isp1|CNVG|192.168.99.250|completed|2026-05-27 13:43:49`
+  - process list returned to normal idle services:
+    - nginx master/worker
+    - crond
+    - php-fpm master
+    - two php-fpm workers
+    - shell only
+- User confirmed source and image promotion steps completed.
+- b1.7 is accepted as the current working build line.
+- Moving tags are expected to point to the accepted b1.7 image:
+  - `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64`
+  - `0.1.1-mikrotik-lite-multi-isp-arm64`
+  - `multi-isp-exp-arm64`
+  - `latest`
