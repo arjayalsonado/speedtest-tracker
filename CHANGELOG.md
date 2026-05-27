@@ -212,3 +212,57 @@ Reference: `REF-CODELOAD-20260524-MIKROTIK-LITE-B1-4-VALIDATION-CLEANUP`
 - Add a MikroTik Lite GitHub version-check guard:
   - `SPEEDTEST_LITE_DISABLE_GITHUB_VERSION_CHECK=true`
   - `SPEEDTEST_LITE_GITHUB_REPOSITORY=rvncore/speedtest-tracker`
+
+## 2026-05-27 - MikroTik Lite b1.5/b1.6 Baseline Rebuild
+
+Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-6-BASELINE`
+
+### Summary
+
+- Merged upstream Speedtest Tracker v1.14.2 CVE release into the experimental MikroTik Lite branch.
+- Built and pushed immutable test image `0.1.1-b1.5-mikrotik-lite-multi-isp-arm64`.
+- Marked `b1.5` as failed after RouterOS startup reported `/usr/local/bin/entrypoint.sh` could not execute.
+- Root cause was not an upstream application change. The upstream merge/rebuild workflow on Windows exposed missing LF enforcement for Linux runtime files, allowing CRLF to be copied into the image.
+- Built and pushed corrected immutable test image `0.1.1-b1.6-mikrotik-lite-multi-isp-arm64`.
+- RouterOS overnight validation reported clean b1.6 runtime behavior.
+
+### b1.5 Failure
+
+- Source baseline: upstream v1.14.2 merge commit `cd4d5db`.
+- Local image ID observed during testing: `sha256:09e0e5e195d02075dbe23fcf8803ae05dc3c1b18b353997a29bcb33d9880cf4a`.
+- Failure mode:
+  - `execvpe /usr/local/bin/entrypoint.sh: No such file or directory`
+- Technical cause:
+  - `entrypoint.sh` had CRLF line endings, so Linux attempted to execute `/bin/bash\r`.
+  - `.env.mikrotik-lite` also needed LF enforcement to avoid values such as `UTC\r`.
+- Status:
+  - Do not deploy.
+  - Do not promote to moving tags.
+
+### b1.6 Correction
+
+- Source commit: `6bedd64`.
+- Local image ID observed during validation: `sha256:8f7983d6c3da29e9a5cd3c3c50c3c2dd65b962e0b6a4526e28eb3adac3e8c3d6`.
+- Corrections:
+  - Enforced LF for `.gitattributes`.
+  - Enforced LF for MikroTik Lite shell/env/config runtime files.
+  - Reloaded the generated Laravel `APP_KEY` before config caching so a blank exported template value cannot poison `bootstrap/cache/config.php`.
+- Local validation:
+  - default entrypoint executed successfully
+  - migrations completed
+  - Vite manifest present
+  - schedule list valid
+  - HTTP returned `302` to setup route and then `200 OK`
+- RouterOS validation:
+  - b1.6 ran cleanly overnight
+  - no stale scheduled processes observed after runs completed
+  - web UI returned `200 OK`
+  - profile result rows continued completing
+
+### Planned b1.7
+
+- Add a 5-minute scheduler startup grace window to avoid first-boot speedtest contention.
+- Remove or relocate the OPcache CLI setting that causes the PHP startup warning.
+- Add MikroTik Lite defaults for GitHub latest-version checks:
+  - disable by default, or
+  - point at `rvncore/speedtest-tracker` if enabled.

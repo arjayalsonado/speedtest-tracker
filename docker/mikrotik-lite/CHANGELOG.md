@@ -231,3 +231,54 @@ Reference: `REF-CODELOAD-20260524-MIKROTIK-LITE-B1-4-VALIDATION-CLEANUP`
 - Add configurable GitHub latest-version behavior for MikroTik Lite:
   - disable by default
   - target `rvncore/speedtest-tracker` if enabled
+
+## 2026-05-27 - b1.5 Failed Baseline and b1.6 Corrected Baseline
+
+Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-6-BASELINE`
+
+### b1.5 Status
+
+- Image tag: `rvncore/speedtest-tracker:0.1.1-b1.5-mikrotik-lite-multi-isp-arm64`
+- Source baseline: upstream v1.14.2 merge commit `cd4d5db`
+- Status: failed immutable test image; do not deploy or promote.
+- Failure observed on RouterOS:
+  - `execvpe /usr/local/bin/entrypoint.sh: No such file or directory`
+- Cause:
+  - Linux runtime files were copied into the image with CRLF line endings after a Windows checkout/merge workflow.
+  - The entrypoint shebang effectively referenced `/bin/bash\r`.
+  - `.env.mikrotik-lite` also required LF enforcement to avoid CRLF in env values.
+
+### b1.6 Status
+
+- Image tag: `rvncore/speedtest-tracker:0.1.1-b1.6-mikrotik-lite-multi-isp-arm64`
+- Source commit: `6bedd64`
+- Local image ID observed during validation:
+  - `sha256:8f7983d6c3da29e9a5cd3c3c50c3c2dd65b962e0b6a4526e28eb3adac3e8c3d6`
+- Status: corrected baseline candidate; RouterOS overnight validation clean.
+
+### Fixes
+
+- Added `.gitattributes` rules for LF-normalized MikroTik Lite runtime files.
+- Normalized the working-tree runtime files to LF before rebuilding.
+- Reloaded the generated Laravel `APP_KEY` before config caching so a blank template `APP_KEY=` export cannot persist into Laravel's cached config.
+
+### Validation
+
+- Local Docker validation:
+  - default entrypoint started successfully
+  - package discovery, migrations, cache generation completed
+  - Vite manifest existed
+  - schedule list rendered
+  - HTTP returned `302` then `200 OK`
+- RouterOS validation:
+  - b1.6 ran cleanly overnight
+  - no stale `schedule:run` or speedtest process observed after a run completed
+  - nginx and PHP-FPM remained active
+  - dashboard HTTP check returned `200 OK`
+  - profile results continued completing
+
+### Planned b1.7 Patch Items
+
+- Add a 5-minute scheduler startup grace window.
+- Remove or relocate the OPcache CLI setting that causes startup warnings.
+- Disable or redirect GitHub latest-version checks for MikroTik Lite.

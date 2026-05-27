@@ -6,13 +6,10 @@ The primary validated target is MikroTik hAP ax3 running RouterOS containers, bu
 
 ## Current Build State
 
-Current corrected build line:
+Current validated test build:
 
 ```text
-rvncore/speedtest-tracker:0.1.1-b1.4-mikrotik-lite-multi-isp-arm64
-rvncore/speedtest-tracker:0.1.1-mikrotik-lite-multi-isp-arm64
-rvncore/speedtest-tracker:multi-isp-exp-arm64
-rvncore/speedtest-tracker:latest
+rvncore/speedtest-tracker:0.1.1-b1.6-mikrotik-lite-multi-isp-arm64
 ```
 
 Do not deploy:
@@ -20,6 +17,7 @@ Do not deploy:
 ```text
 rvncore/speedtest-tracker:0.1.1-b1.0-mikrotik-lite-multi-isp-arm64
 rvncore/speedtest-tracker:0.1.1-b1.1-mikrotik-lite-multi-isp-arm64
+rvncore/speedtest-tracker:0.1.1-b1.5-mikrotik-lite-multi-isp-arm64
 ```
 
 Build `b1.0` is known broken because it included an unsupported Laravel scheduler call:
@@ -32,18 +30,23 @@ The installed Laravel scheduler event API does not support that method. Build `b
 
 Build `b1.2` adds the missing frontend asset build step. Build `b1.3` adds a scheduler lock wrapper so a new cron tick does not start another `schedule:run` while the previous one is still active. Build `b1.4` adds stale-lock recovery and raises PHP-FPM to two workers for better admin responsiveness during Lite runtime testing.
 
+Build `b1.5` was an immutable baseline test image after the upstream v1.14.2 merge, but it is known broken and should not be promoted. It was built from a Windows checkout where Linux runtime files were CRLF-normalized, causing the Linux entrypoint and env parsing to fail.
+
+Build `b1.6` is the corrected baseline candidate. It enforces LF checkout for MikroTik Lite runtime files and reloads the generated Laravel `APP_KEY` before config caching.
+
 Planned next patch build:
 
 ```text
-0.1.1-b1.5-mikrotik-lite-multi-isp-arm64
+0.1.1-b1.7-mikrotik-lite-multi-isp-arm64
 ```
 
-Planned b1.5 cleanup items:
+Planned b1.7 cleanup items:
 
 - Remove PHP-FPM pool setting `php_admin_value[opcache.enable_cli] = 1`.
 - Keep `php_admin_value[opcache.enable] = 1`.
 - Keep the 20-minute profile schedule defaults.
 - Add a MikroTik Lite guard for GitHub latest-version checks so dashboard rendering does not block on GitHub timeouts.
+- Add a 5-minute scheduler startup grace window so speed tests do not begin during container warmup.
 
 ## Runtime Model
 

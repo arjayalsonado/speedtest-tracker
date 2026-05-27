@@ -1752,3 +1752,141 @@ Corrected local tags now point to `b1.4`:
   - shell only
 - Local HTTP check returned `HTTP/1.1 200 OK`.
 - b1.4 is considered finalized for current runtime use.
+
+### Standalone Repository Publishing Gate - 2026-05-25 +08:00
+
+- Before publishing this work as a standalone repository, perform a public-facing cleanup pass so the project reads as a maintained niche runtime fork rather than an AI work dump.
+- Keep the public surface focused on:
+  - clear ARM64/MikroTik/RouterOS container scope
+  - source-bound or multi-interface speedtest use case
+  - reproducible Docker image tags
+  - RouterOS deployment commands
+  - known limitations and validation notes
+  - upstream attribution to `alexjustesen/speedtest-tracker`
+- Keep detailed AI/process artifacts secondary:
+  - `.ai/` may remain as internal worklog if desired, but should not be the first thing users need to understand.
+  - root README should be concise, human-readable, and operator-focused.
+  - changelog should summarize release-grade changes, not every intermediate AI/reviewer exchange.
+- Suggested standalone identity remains pending, but should avoid overclaiming:
+  - "Speedtest Tracker Lite for ARM/RouterOS Containers"
+  - "A maintained fork of Speedtest Tracker focused on low-memory ARM64 containers, source-bound speed tests, and RouterOS/MikroTik deployment."
+- Do this after the b1.6/b1.7 stabilization line is clean enough to serve as a credible baseline.
+
+## 2026-05-27 00:00 +08:00 - b1.5 Failed Baseline and b1.6 Corrected Baseline
+
+Reference: `REF-CODELOAD-20260527-MIKROTIK-LITE-B1-6-BASELINE`
+
+Project: `Container/speedtest-tracker`
+
+Goal:
+
+- Rebuild the current MikroTik Lite multi-interface runtime after merging upstream Speedtest Tracker v1.14.2 CVE release.
+- Preserve the existing b1.4 runtime behavior while validating the patched upstream baseline.
+- Keep image tagging traceable and avoid promoting unvalidated images.
+
+Files changed:
+
+- `.gitattributes`
+- `docker/mikrotik-lite/entrypoint.sh`
+- `CHANGELOG.md`
+- `docker/mikrotik-lite/CHANGELOG.md`
+- `docker/mikrotik-lite/README.md`
+- `.ai/CODELOAD_HISTORY.md`
+
+Build sequence:
+
+- `0.1.1-b1.5-mikrotik-lite-multi-isp-arm64`
+  - source baseline: `cd4d5db`
+  - source meaning: upstream v1.14.2 CVE release merged into the MikroTik Lite branch
+  - local image ID observed: `sha256:09e0e5e195d02075dbe23fcf8803ae05dc3c1b18b353997a29bcb33d9880cf4a`
+  - result: failed immutable test image
+- `0.1.1-b1.6-mikrotik-lite-multi-isp-arm64`
+  - source commit: `6bedd64`
+  - local image ID observed: `sha256:8f7983d6c3da29e9a5cd3c3c50c3c2dd65b962e0b6a4526e28eb3adac3e8c3d6`
+  - result: corrected baseline candidate, pushed and RouterOS-tested
+
+b1.5 failure:
+
+- RouterOS startup failed with:
+  - `execvpe /usr/local/bin/entrypoint.sh: No such file or directory`
+- Local Docker default-entrypoint test reproduced:
+  - `exec /usr/local/bin/entrypoint.sh: no such file or directory`
+- Root cause:
+  - `entrypoint.sh` was checked out with CRLF after the upstream merge/rebuild workflow on Windows.
+  - Linux attempted to use `/bin/bash\r` from the shebang.
+  - `.env.mikrotik-lite` also had CRLF risk, causing values such as `UTC\r`.
+- Assessment:
+  - Triggered by the Windows checkout/merge workflow.
+  - Not caused by upstream v1.14.2 application logic.
+
+b1.6 fixes:
+
+- Added `.gitattributes` LF enforcement for:
+  - `.gitattributes`
+  - `*.sh`
+  - `docker/mikrotik-lite/.env.mikrotik-lite`
+  - `docker/mikrotik-lite/*.conf`
+  - `docker/mikrotik-lite/Dockerfile.mikrotik-lite`
+  - `docker/mikrotik-lite/entrypoint.sh`
+- Normalized the MikroTik Lite runtime files to LF before rebuild.
+- Updated the entrypoint to unset/reload `APP_KEY` after `php artisan key:generate`.
+- Reason for APP_KEY fix:
+  - the template can export `APP_KEY=`
+  - `key:generate` writes a real key to `/config/.env`
+  - the current shell could still carry the old blank `APP_KEY`
+  - `config:cache` could then cache the blank key and cause HTTP 500 on clean first boot
+
+Validation performed:
+
+- Local Docker:
+  - default entrypoint started successfully
+  - package discovery completed
+  - migrations completed
+  - Vite manifest existed
+  - `php artisan schedule:list` rendered
+  - HTTP returned `302` to first-run route and then `200 OK`
+- RouterOS:
+  - b1.6 ran cleanly overnight
+  - later process list showed only normal idle services:
+    - nginx master/worker
+    - crond
+    - php-fpm master
+    - two php-fpm workers
+  - no stale `schedule:run` or speedtest process remained after run completion
+  - HTTP returned `200 OK`
+  - SQLite results continued completing:
+    - `isp1|completed|877|2026-05-24 16:00:03`
+    - `isp1|failed|7|2026-05-24 14:40:16`
+    - `isp2|completed|854|2026-05-24 16:50:19`
+    - `isp2|failed|1|2026-05-24 14:14:35`
+
+Reviewer feedback:
+
+- No Copilot review was requested for this emergency build recovery cycle.
+- Reason: the change was narrow, operationally urgent, and validated through Docker default-entrypoint testing plus RouterOS runtime checks.
+
+Feedback accepted:
+
+- Not applicable.
+
+Feedback rejected:
+
+- Not applicable.
+
+Adopted changes:
+
+- Treat `b1.5` as a failed immutable test artifact.
+- Treat `b1.6` as the current clean candidate.
+- Do not move convenience tags until RouterOS validation is accepted.
+
+Remaining risks and follow-ups:
+
+- Promote `b1.6` to moving tags if accepted:
+  - `latest`
+  - `multi-isp-exp-arm64`
+  - `0.1.1-mikrotik-lite-multi-isp-arm64`
+- b1.7 patch remains pending:
+  - add 5-minute scheduler startup grace window
+  - remove/fix OPcache CLI startup warning
+  - disable or redirect GitHub latest-version checks for MikroTik Lite
+- Later standalone repository publishing gate remains pending.
