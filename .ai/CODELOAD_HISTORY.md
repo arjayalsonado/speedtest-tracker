@@ -2031,3 +2031,42 @@ Remaining risks and follow-ups:
   - `0.1.1-mikrotik-lite-multi-isp-arm64`
   - `multi-isp-exp-arm64`
   - `latest`
+
+### b1.7 Extended Observation Closeout - 2026-05-29 19:20 +08:00
+
+- Observation container:
+  - `app-speed-b17-c7ab9c6`
+- Image:
+  - `rvncore/speedtest-tracker:0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64`
+- RouterOS container status:
+  - running
+  - `memory-high=192.0MiB`
+  - `memory-current=85.0MiB`
+  - `cpu-usage=3.4`
+  - image ID `5b72f6b826366c64191953cd82446d7f9710014c9acbbc1a414a8df075d7b205`
+- Profile validation passed:
+  - `isp1` CNVG `192.168.99.250` visible, cron `0,30 * * * *`
+  - `isp2` PLDT `192.168.99.251` visible, cron `15,45 * * * *`
+- `schedule:list` confirmed:
+  - upstream maintenance schedules present
+  - `sqlite-vacuum` present
+  - profile schedules using the calmer 30-minute-per-profile stagger
+- Process list was clean and idle:
+  - nginx master/worker
+  - crond
+  - php-fpm master
+  - two php-fpm workers
+  - shell only
+- SQLite aggregate status:
+  - `isp1|completed|1169|2026-05-29 11:00:03`
+  - `isp1|failed|8|2026-05-27 16:30:28`
+  - `isp2|completed|1147|2026-05-29 10:15:03`
+  - `isp2|failed|1|2026-05-24 14:14:35`
+  - `untagged|waiting|2|2026-05-27 14:01:25`
+- Latest 12 result rows were all tagged `completed` profile runs from the expected staggered schedule.
+- Assessment:
+  - b1.7 extended observation is accepted.
+  - The two untagged `waiting` rows are stale restart-window residue and are not growing.
+  - No current evidence of stuck scheduler, stuck speedtest process, repeated startup race, or memory pressure.
+- Closed pending item:
+  - Continue b1.7 observation.
