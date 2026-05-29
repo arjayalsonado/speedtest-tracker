@@ -7,6 +7,28 @@ Branch: `mikrotik-lite-multi-isp-exp`
 
 This changelog tracks the v1.2.1 experimental MikroTik Lite multi-ISP build changes and patches that were implemented from the archive documentation.
 
+## 2026-05-29 - b1.9 Patch Candidate
+
+Reference: `REF-CODELOAD-20260529-MIKROTIK-LITE-B1-9-PATCH`
+
+### Summary
+
+- Started b1.9 after b1.8 was assigned to the upstream v1.14.3 baseline observation build.
+- Changed the bundled MikroTik Lite default profile schedules to the calmer RouterOS-validated stagger.
+- Kept CVE/APK remediation as b1.9 candidate work, to be tested with SHA-specific image tags before promotion.
+
+### Changed
+
+- `SPEEDTEST_LITE_ISP1_CRON` default:
+  - `0,30 * * * *`
+- `SPEEDTEST_LITE_ISP2_CRON` default:
+  - `15,45 * * * *`
+
+### Notes
+
+- The runtime remains configurable through RouterOS envlists or `/config/.env`.
+- Existing deployments with explicit envlist values are not forced to adopt these defaults.
+
 ## Summary
 
 - Added multi-ISP profile support for Speedtest Tracker Lite.

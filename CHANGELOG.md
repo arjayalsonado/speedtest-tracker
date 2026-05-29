@@ -2,6 +2,27 @@
 
 This file tracks consolidated repository changes for the MikroTik Lite experimental multi-ISP build and related repo patches.
 
+## 2026-05-29 - MikroTik Lite b1.9 Patch Candidate
+
+Reference: `REF-CODELOAD-20260529-MIKROTIK-LITE-B1-9-PATCH`
+
+### Summary
+
+- Started the b1.9 patch line after accepting b1.8 as the upstream v1.14.3 baseline observation build.
+- Changed the default MikroTik Lite example profile schedules to the calmer 30-minute-per-profile stagger already validated on RouterOS.
+- Kept Docker Scout/APK remediation scoped to b1.9 analysis and testing, separate from b1.8.
+
+### Changed
+
+- Default ISP profile schedule examples:
+  - `isp1`: `0,30 * * * *`
+  - `isp2`: `15,45 * * * *`
+
+### Notes
+
+- Existing RouterOS envlist overrides can still set any valid per-profile cron values.
+- Docker Scout remediation should be tested as a separate b1.9 candidate image using a SHA-specific tag before any moving tag promotion.
+
 ## 2026-05-14 — `mikrotik-lite-multi-isp-exp`
 
 ### Summary

@@ -2070,3 +2070,90 @@ Remaining risks and follow-ups:
   - No current evidence of stuck scheduler, stuck speedtest process, repeated startup race, or memory pressure.
 - Closed pending item:
   - Continue b1.7 observation.
+
+### b1.8 Upstream Baseline Observation Started - 2026-05-29 19:55 +08:00
+
+- Source baseline:
+  - `097ebfb`
+  - upstream Speedtest Tracker v1.14.3 merge into `mikrotik-lite-multi-isp-exp`
+- Image under RouterOS observation:
+  - `rvncore/speedtest-tracker:0.1.1-b1.8-097ebfb-mikrotik-lite-multi-isp-arm64`
+- RouterOS test container:
+  - `app-speed-b18-097ebfb`
+- Purpose:
+  - observe the upstream merge baseline separately from the next runtime patch
+  - keep b1.8 free of Docker Scout/APK remediation and schedule-default edits
+
+Docker Scout review:
+
+- Scout target:
+  - `rvncore/speedtest-tracker:0.1.1-b1.8-097ebfb-mikrotik-lite-multi-isp-arm64`
+  - image digest shown by Scout: `f4f453adcb57`
+  - platform: `linux/arm64`
+- Scout summary:
+  - `1C 10H 0M 0L`
+  - 244 packages indexed
+- Packages reported:
+  - `nginx 1.28.3-r1`
+    - `CVE-2026-9256`
+    - fixed version available: `1.28.3-r2`
+  - `tar 1.35-r3`
+    - 5 high findings
+    - fixed version not available in the reported Alpine package set
+  - `curl 8.14.1-r2`
+    - 3 high findings
+    - fixed version not available in the reported Alpine package set
+  - `jq 1.8.1-r0`
+    - 1 high finding
+    - fixed version not available in the reported Alpine package set
+  - `sqlite 3.49.2-r1`
+    - 1 high finding
+    - fixed version not available in the reported Alpine package set
+- Scout base-image recommendation:
+  - current base: `php:8.4-fpm-alpine3.22`
+  - current base is up to date for Alpine 3.22
+  - recommended alternate line: `php:8.4-fpm-alpine3.23`
+  - recommendation summary: removes the critical finding and two high findings from the base comparison
+- Assessment:
+  - do not patch b1.8
+  - use b1.8 only as the upstream v1.14.3 baseline observation build
+  - evaluate CVE/APK remediation in b1.9
+  - before changing base image, test whether a no-cache Alpine 3.22 rebuild pulls `nginx 1.28.3-r2`
+  - if Alpine 3.22 still leaves the critical nginx finding, consider moving both Dockerfile stages to `php:8.4-fpm-alpine3.23`
+
+Pending b1.9 items:
+
+- Change default example profile schedules to the calmer validated stagger:
+  - `SPEEDTEST_LITE_ISP1_CRON=0,30 * * * *`
+  - `SPEEDTEST_LITE_ISP2_CRON=15,45 * * * *`
+- Review and apply CVE/APK remediation only after b1.8 observation remains clean.
+- Keep PHP at 8.4 unless a stronger reason appears; avoid jumping to PHP 8.5 for this patch line.
+- Rebuild, scan, and RouterOS-test b1.9 after source changes are committed.
+
+Pending RouterOS cleanup:
+
+- After b1.8/b1.9 validation, remove stale stopped test containers and unused root directories.
+- Currently observed cleanup candidates:
+  - `app-speed` using `root-0.1.1-b1.6`
+  - `app-speed-b14-rollback` using `root-0.1.1-b1.4`
+  - `app-speed-b17-c7ab9c6` using `root-0.1.1-b1.7-c7ab9c6`
+- Keep at least one known-good rollback container/root until the active b1.8 or b1.9 line is accepted.
+- Before deleting root directories, verify persistent data remains under the shared `/config` mount and not inside the old root directory.
+
+### b1.9 Patch Line Started - 2026-05-29 20:05 +08:00
+
+- Goal:
+  - start b1.9 as the post-b1.8 patch lane
+  - keep b1.8 as the upstream v1.14.3 baseline observation build
+  - use SHA-specific b1.9 candidate tags for traceable iterations
+- Source changes started:
+  - changed MikroTik Lite bundled default profile schedules to the calmer RouterOS-validated stagger
+  - `SPEEDTEST_LITE_ISP1_CRON="0,30 * * * *"`
+  - `SPEEDTEST_LITE_ISP2_CRON="15,45 * * * *"`
+- Documentation changes started:
+  - updated MikroTik Lite README examples
+  - added b1.9 changelog entries
+- CVE remediation status:
+  - not applied yet
+  - no-cache Alpine 3.22 rebuild probe is still pending because Docker build approval was not available from this sandbox
+  - next check should determine whether a no-cache build pulls `nginx 1.28.3-r2` before changing the Dockerfile base image

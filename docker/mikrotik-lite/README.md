@@ -76,12 +76,12 @@ DISPLAY_TIMEZONE=Asia/Manila
 SPEEDTEST_LITE_ISP1_ENABLED=true
 SPEEDTEST_LITE_ISP1_NAME=CNVG
 SPEEDTEST_LITE_ISP1_SOURCE_IP=192.168.99.250
-SPEEDTEST_LITE_ISP1_CRON=0,20,40 * * * *
+SPEEDTEST_LITE_ISP1_CRON=0,30 * * * *
 
 SPEEDTEST_LITE_ISP2_ENABLED=true
 SPEEDTEST_LITE_ISP2_NAME=PLDT
 SPEEDTEST_LITE_ISP2_SOURCE_IP=192.168.99.251
-SPEEDTEST_LITE_ISP2_CRON=10,30,50 * * * *
+SPEEDTEST_LITE_ISP2_CRON=15,45 * * * *
 ```
 
 On RouterOS, long VETH names may appear truncated inside the container. For example, `veth-app-speedtest` appeared as `veth-app-speedt`. Set `SPEEDTEST_LITE_BIND_INTERFACE` to the name shown by:
@@ -136,15 +136,15 @@ Expected profile validation:
 [isp2] PLDT source_ip=192.168.99.251 visible=yes
 ```
 
-Known-good b1.4 closeout checks from RouterOS validation:
+Current RouterOS validation checks:
 
 ```text
 speedtest-lite:validate-isp-profiles
-  [isp1] CNVG source_ip=192.168.99.250 visible=yes cron=0,20,40 * * * *
-  [isp2] PLDT source_ip=192.168.99.251 visible=yes cron=10,30,50 * * * *
+  [isp1] CNVG source_ip=192.168.99.250 visible=yes cron=0,30 * * * *
+  [isp2] PLDT source_ip=192.168.99.251 visible=yes cron=15,45 * * * *
 
 schedule:list
-  profile schedules present on 20-minute stagger
+  profile schedules present on 30-minute stagger
   upstream maintenance schedules still present
   sqlite-vacuum still present
 
