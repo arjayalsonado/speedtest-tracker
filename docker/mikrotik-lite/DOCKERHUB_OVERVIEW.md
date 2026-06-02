@@ -16,22 +16,22 @@ This image is maintained independently and is not an official image from the ups
 
 ## Development Disclosure
 
-Development notes and validation history are tracked in the project repository. Some implementation and documentation work was AI-assisted, with manual testing performed on RouterOS hardware.
+Public release notes are tracked in the project repository. Some implementation and documentation work was AI-assisted, with manual testing performed on RouterOS hardware.
 
 ## Recommended Tags
 
-- `rvncore/speedtest-tracker:0.1.1-b1.7-mikrotik-lite-multi-isp-arm64`
-- `rvncore/speedtest-tracker:0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.1.1-b1.9-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64`
 
 For repeatable deployments, prefer the pinned build tag:
 
-`rvncore/speedtest-tracker:0.1.1-b1.7-mikrotik-lite-multi-isp-arm64`
+`rvncore/speedtest-tracker:0.1.1-b1.9-mikrotik-lite-multi-isp-arm64`
 
 For exact build traceability, use the source-SHA tag:
 
-`rvncore/speedtest-tracker:0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64`
+`rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64`
 
-Moving tags such as `latest`, `multi-isp-exp-arm64`, and `0.1.1-mikrotik-lite-multi-isp-arm64` should be used only after confirming they have been promoted to the intended validated build.
+Moving tags such as `latest`, `multi-isp-exp-arm64`, and `0.1.1-mikrotik-lite-multi-isp-arm64` currently point to the validated b1.9 build. For repeatable deployments, prefer a pinned build tag or source-SHA tag.
 
 ## Key Features
 
@@ -127,7 +127,7 @@ Adds/fixes:
 
 ### `0.1.1-b1.7` - Validated runtime stabilization build
 
-Validated on RouterOS using the source-SHA image tag. Promote moving tags only after confirming the target Docker Hub tags point to this build.
+Previous validated runtime stabilization build.
 
 Adds/fixes:
 
@@ -136,13 +136,25 @@ Adds/fixes:
 - Confirmed RouterOS automatic scheduled-run validation
 - Used as the active observation build before the next default-schedule patch
 
+### `0.1.1-b1.9` - Current validated build
+
+Validated on RouterOS using the source-SHA image tag after approximately 36 hours of stable runtime observation.
+
+Adds/fixes:
+
+- Changed bundled default profile schedules to the calmer 30-minute-per-profile stagger
+- Kept profile schedules configurable through env values
+- Rebuilt from current Alpine 3.22 package repositories without cached APK layers
+- Updated nginx from `1.28.3-r1` to `1.28.3-r2`
+- Removed the fixable nginx critical CVE reported by Docker Scout
+- Retained the PHP 8.4 / Alpine 3.22 runtime baseline to limit functional change
+
 ## Planned Work
 
 ### Runtime Stabilization
 
-- Change default example schedules to a calmer 30-minute-per-profile stagger.
 - Continue using configurable staggered profile schedules by default.
-- Review Docker Scout APK package vulnerability findings and rebuild when patched packages or base images are available.
+- Rebuild when patched Alpine packages become available for remaining Docker Scout findings.
 
 ### Future Feature Line
 
@@ -233,10 +245,10 @@ Create the environment list. Adjust profile names, source IPs, and cron values f
 
 ### Create and Start the Container
 
-For first validation, prefer the exact build tag. After promotion, `latest` can be used if you intentionally want the current promoted build.
+For first validation, prefer the exact source-SHA build tag. For repeatable deployments, use the promoted pinned build tag. Use `latest` only if you intentionally want the current promoted build.
 
 ```
-/container/add remote-image=rvncore/speedtest-tracker:0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64 interface=veth-app-speed root-dir=usb1-part1/apps/speedtest/app-speedtest/root mountlists=mount-app-speed envlist=env-app-speed memory-high=192M logging=yes start-on-boot=no name=app-speed
+/container/add remote-image=rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64 interface=veth-app-speed root-dir=usb1-part1/apps/speedtest/app-speedtest/root mountlists=mount-app-speed envlist=env-app-speed memory-high=192M logging=yes start-on-boot=no name=app-speed
 /container/start app-speed
 ```
 
@@ -280,14 +292,16 @@ Validated on:
 
 ### Known Good Tags
 
-- `0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64` - Exact RouterOS-tested b1.7 build
-- `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64` - Validated b1.7 build tag, once pushed/promoted
+- `0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64` - Exact RouterOS-tested current build
+- `0.1.1-b1.9-mikrotik-lite-multi-isp-arm64` - Current validated promoted b1.9 build tag
+- `0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64` - Previous RouterOS-tested rollback build
+- `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64` - Previous validated b1.7 rollback tag
 - `0.1.1-b1.6-mikrotik-lite-multi-isp-arm64` - Previous corrected baseline
 - `0.1.1-b1.4-mikrotik-lite-multi-isp-arm64` - Previous rollback build
 
 Avoid older experimental tags for new deployments.
 
-Use pinned version tags for production-like deployments. Use `latest` only if you intentionally want the current promoted build and have confirmed where it points.
+Use pinned version tags for production-like deployments. Use `latest` only if you intentionally want the current promoted build.
 
 ## Status
 
