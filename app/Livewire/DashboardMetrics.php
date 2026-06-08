@@ -12,6 +12,8 @@ class DashboardMetrics extends Component
 {
     public string $ispProfileKey = 'all';
 
+    public string $chartRange = '24h';
+
     #[Computed]
     public function profileOptions(): array
     {
@@ -25,10 +27,40 @@ class DashboardMetrics extends Component
             ->all();
     }
 
+    #[Computed]
+    public function chartRangeOptions(): array
+    {
+        return [
+            '1h' => __('general.last_1h'),
+            '6h' => __('general.last_6h'),
+            '12h' => __('general.last_12h'),
+            '24h' => __('general.last_24h'),
+            'week' => __('general.last_week'),
+            'month' => __('general.last_month'),
+            'year' => __('general.last_year'),
+        ];
+    }
+
+    public function mount(): void
+    {
+        $defaultRange = config('speedtest.default_chart_range', '24h');
+
+        if (array_key_exists($defaultRange, $this->chartRangeOptions)) {
+            $this->chartRange = $defaultRange;
+        }
+    }
+
     public function updatedIspProfileKey(string $value): void
     {
         if (! array_key_exists($value, $this->profileOptions)) {
             $this->ispProfileKey = 'all';
+        }
+    }
+
+    public function updatedChartRange(string $value): void
+    {
+        if (! array_key_exists($value, $this->chartRangeOptions)) {
+            $this->chartRange = '24h';
         }
     }
 

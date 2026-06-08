@@ -5,30 +5,44 @@
             {{ __('general.metrics') }}
         </h2>
 
-        @if (count($this->profileOptions) > 1)
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            @if (count($this->profileOptions) > 1)
+                <label class="inline-flex items-center gap-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <span>{{ __('general.isp_profile') }}</span>
+                    <select
+                        wire:model.live="ispProfileKey"
+                        class="min-w-48 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    >
+                        @foreach ($this->profileOptions as $key => $name)
+                            <option value="{{ $key }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+
             <label class="inline-flex items-center gap-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                <span>{{ __('general.isp_profile') }}</span>
+                <span>{{ __('general.chart_range') }}</span>
                 <select
-                    wire:model.live="ispProfileKey"
-                    class="min-w-48 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                    wire:model.live="chartRange"
+                    class="min-w-40 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                 >
-                    @foreach ($this->profileOptions as $key => $name)
-                        <option value="{{ $key }}">{{ $name }}</option>
+                    @foreach ($this->chartRangeOptions as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
                     @endforeach
                 </select>
             </label>
-        @endif
+        </div>
     </div>
 
-    @livewire(\App\Filament\Widgets\RecentDownloadChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('download-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentDownloadChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('download-'.$ispProfileKey.'-'.$chartRange))
 
-    @livewire(\App\Filament\Widgets\RecentUploadChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('upload-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentUploadChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('upload-'.$ispProfileKey.'-'.$chartRange))
 
-    @livewire(\App\Filament\Widgets\RecentPingChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('ping-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentPingChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('ping-'.$ispProfileKey.'-'.$chartRange))
 
-    @livewire(\App\Filament\Widgets\RecentJitterChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('jitter-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentJitterChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('jitter-'.$ispProfileKey.'-'.$chartRange))
 
-    @livewire(\App\Filament\Widgets\RecentDownloadLatencyChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('download-latency-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentDownloadLatencyChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('download-latency-'.$ispProfileKey.'-'.$chartRange))
 
-    @livewire(\App\Filament\Widgets\RecentUploadLatencyChartWidget::class, ['ispProfileKey' => $ispProfileKey], key('upload-latency-'.$ispProfileKey))
+    @livewire(\App\Filament\Widgets\RecentUploadLatencyChartWidget::class, ['ispProfileKey' => $ispProfileKey, 'filter' => $chartRange, 'showChartRangeFilter' => false], key('upload-latency-'.$ispProfileKey.'-'.$chartRange))
 </div>

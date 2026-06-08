@@ -81,6 +81,7 @@ return [
     'isp_profile' => 'ISP profile',
     'isp_profile_last_results' => 'ISP Profile - :profile Last Results',
     'all_profiles' => 'All profiles',
+    'chart_range' => 'Chart range',
     'total_failed' => 'Fehlgeschlagene Tests insgesamt',
     'total_complted' => 'Gesamte abgeschlossene Tests',
     'total' => 'Gesamt',

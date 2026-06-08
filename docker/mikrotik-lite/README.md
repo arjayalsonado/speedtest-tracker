@@ -264,7 +264,7 @@ Local AI worklogs are intentionally not tracked in the public repository. Public
 
 ## Multi-ISP UI Work
 
-The `0.2.0-b1.0` feature line starts the profile-aware dashboard work for the MikroTik Lite multi-ISP variant.
+The `0.2.0-b1.x` feature line starts the profile-aware dashboard work for the MikroTik Lite multi-ISP variant.
 
 Included in the first guest-dashboard pass:
 
@@ -280,8 +280,8 @@ Pending follow-up work:
 - Add logged-in dashboard parity where useful.
 - Add a Lite-build-aware version indicator.
 
-Feature version:
+Current test feature version:
 
 ```text
-0.2.0-b1.0-mikrotik-lite-multi-isp-arm64
+0.2.0-b1.1-mikrotik-lite-multi-isp-arm64
 ```

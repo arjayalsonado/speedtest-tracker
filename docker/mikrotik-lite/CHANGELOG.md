@@ -7,6 +7,22 @@ Branch: `mikrotik-lite-multi-isp-exp`
 
 This changelog tracks the v1.2.1 experimental MikroTik Lite multi-ISP build changes and patches that were implemented from the archive documentation.
 
+## 2026-06-08 - 0.2.0-b1.1 Guest UI Feedback Patch
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-1-UI-FEEDBACK`
+
+### Summary
+
+- Incorporated RouterOS guest-dashboard feedback from the first `0.2.0-b1.0` test container.
+- Changed latest results to use one section header, with one row per ISP profile.
+- Added an ISP Profile card to each latest-result row.
+- Replaced independent per-chart range dropdowns with one shared guest dashboard chart range selector.
+- Changing ISP/profile no longer resets the selected chart range.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.1-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
 ## 2026-06-08 - 0.2.0-b1.0 Guest Multi-ISP UI
 
 Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-0-UI`

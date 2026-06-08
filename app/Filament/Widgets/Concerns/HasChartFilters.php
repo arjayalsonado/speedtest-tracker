@@ -8,7 +8,18 @@ trait HasChartFilters
 {
     public ?string $ispProfileKey = null;
 
+    public bool $showChartRangeFilter = true;
+
     protected function getFilters(): ?array
+    {
+        if (! $this->showChartRangeFilter) {
+            return null;
+        }
+
+        return $this->chartRangeOptions();
+    }
+
+    protected function chartRangeOptions(): array
     {
         return [
             '1h' => __('general.last_1h'),
