@@ -2,6 +2,21 @@
 
 This file tracks consolidated repository changes for the MikroTik Lite experimental multi-ISP build and related repo patches.
 
+## 2026-06-08 - MikroTik Lite 0.2.0-b1.2 Unique Egress Validation
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-2-UNIQUE-EGRESS`
+
+### Summary
+
+- Added dynamic unique-egress validation for MikroTik Lite multi-ISP profiles.
+- Marks a profile run failed when its external IP matches another enabled profile within the configured recent window.
+- Added external IP visibility to the guest Last Results profile card.
+- Shows unique-egress failures as downtime/failover indicators instead of silently displaying stale successful data.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.2-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
 ## 2026-06-08 - MikroTik Lite 0.2.0-b1.1 Guest UI Feedback Patch
 
 Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-1-UI-FEEDBACK`

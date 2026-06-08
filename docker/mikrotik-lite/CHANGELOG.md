@@ -7,6 +7,22 @@ Branch: `mikrotik-lite-multi-isp-exp`
 
 This changelog tracks the v1.2.1 experimental MikroTik Lite multi-ISP build changes and patches that were implemented from the archive documentation.
 
+## 2026-06-08 - 0.2.0-b1.2 Unique Egress Validation
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-2-UNIQUE-EGRESS`
+
+### Summary
+
+- Added optional unique-egress validation for dynamic residential ISP public IPs.
+- Detects when a profile exits through the same external IP as another enabled profile within the configured recent window.
+- Reclassifies the current run as failed when this collision is detected, so speed metrics do not treat failover traffic as the intended ISP path.
+- Adds external IP display to the guest Last Results profile card.
+- Shows unique-egress collisions as downtime/failover in Last Results.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.2-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
 ## 2026-06-08 - 0.2.0-b1.1 Guest UI Feedback Patch
 
 Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-1-UI-FEEDBACK`

@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\ResultStatus;
 use App\Models\Result;
 use App\Support\SpeedtestLite\IspProfiles;
+use App\Support\SpeedtestLite\UniqueEgressValidator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -33,6 +34,7 @@ class LatestResultStats extends Component
                     'key' => null,
                     'name' => null,
                     'result' => $this->latestResult,
+                    'uniqueEgressFailure' => false,
                 ],
             ])->filter(fn (array $item): bool => $item['result'] instanceof Result);
         }
@@ -42,10 +44,8 @@ class LatestResultStats extends Component
                 return [
                     'key' => $key,
                     'name' => $name,
-                    'result' => Result::where('status', ResultStatus::Completed)
-                        ->where('isp_profile_key', $key)
-                        ->latest()
-                        ->first(),
+                    'result' => $result = $this->latestDisplayResultForProfile($key),
+                    'uniqueEgressFailure' => $result instanceof Result && UniqueEgressValidator::isFailure($result),
                 ];
             })
             ->filter(fn (array $item): bool => $item['result'] instanceof Result)
@@ -64,6 +64,20 @@ class LatestResultStats extends Component
     {
         return IspProfiles::enabled()
             ->mapWithKeys(fn ($profile): array => [$profile->key => $profile->name]);
+    }
+
+    protected function latestDisplayResultForProfile(string $key): ?Result
+    {
+        return Result::query()
+            ->where('isp_profile_key', $key)
+            ->whereIn('status', [ResultStatus::Completed, ResultStatus::Failed])
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->first(function (Result $result): bool {
+                return $result->status === ResultStatus::Completed
+                    || UniqueEgressValidator::isFailure($result);
+            });
     }
 
     /**

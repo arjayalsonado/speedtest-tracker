@@ -24,6 +24,9 @@
                         /** @var \App\Models\Result $result */
                         $result = $item['result'];
                         $profileName = $item['name'];
+                        $uniqueEgressFailure = $item['uniqueEgressFailure'] ?? false;
+                        $externalIp = $result->ip_address;
+                        $uniqueEgress = Arr::get($result->data, 'speedtest_lite.unique_egress', []);
                         $download = explode(' ', \App\Helpers\Bitrate::formatBits(\App\Helpers\Bitrate::bytesToBits($result->download)));
                         $upload = explode(' ', \App\Helpers\Bitrate::formatBits(\App\Helpers\Bitrate::bytesToBits($result->upload)));
                     @endphp
@@ -34,6 +37,15 @@
                                 {{ __('general.isp_profile') }}
                             </x-slot>
 
+                            @if ($uniqueEgressFailure)
+                                <x-slot name="afterHeader">
+                                    <span class="inline-flex items-center gap-x-1 text-xs font-medium text-danger-600 dark:text-danger-400">
+                                        <x-tabler-alert-triangle class="size-4" />
+                                        {{ __('general.downtime_detected') }}
+                                    </span>
+                                </x-slot>
+                            @endif
+
                             <p class="flex flex-col gap-y-1">
                                 <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                                     {{ $profileName ?? __('general.all_profiles') }}
@@ -41,6 +53,20 @@
                                 <span class="text-sm text-zinc-600 dark:text-zinc-400">
                                     {{ $result->created_at->timezone(config('app.display_timezone'))->format(config('app.datetime_format')) }}
                                 </span>
+                                <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                                    {{ __('general.external_ip') }}:
+                                    <span class="font-medium text-zinc-800 dark:text-zinc-200">
+                                        {{ $externalIp ?: __('general.not_measured') }}
+                                    </span>
+                                </span>
+                                @if ($uniqueEgressFailure)
+                                    <span class="text-xs text-danger-600 dark:text-danger-400">
+                                        {{ __('general.failover_detected') }}
+                                        @filled(Arr::get($uniqueEgress, 'matched_profile_name'))
+                                            {{ __('general.matched_profile') }}: {{ Arr::get($uniqueEgress, 'matched_profile_name') }}
+                                        @endfilled
+                                    </span>
+                                @endif
                             </p>
                         </x-filament::section>
 
@@ -50,7 +76,7 @@
                             </x-slot>
 
                             @php
-                                $downloadBenchmark = Arr::get($result->benchmarks, 'download');
+                                $downloadBenchmark = $uniqueEgressFailure ? null : Arr::get($result->benchmarks, 'download');
                                 $downloadBenchmarkPassed = Arr::get($downloadBenchmark, 'passed', false);
                             @endphp
 
@@ -72,8 +98,12 @@
                             @endfilled
 
                             <p class="flex items-baseline gap-x-2">
-                                <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $download[0] }}</span>
-                                <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $download[1].'ps' }}</span>
+                                @if ($uniqueEgressFailure)
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('general.not_measured') }}</span>
+                                @else
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $download[0] }}</span>
+                                    <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $download[1].'ps' }}</span>
+                                @endif
                             </p>
                         </x-filament::section>
 
@@ -83,7 +113,7 @@
                             </x-slot>
 
                             @php
-                                $uploadBenchmark = Arr::get($result->benchmarks, 'upload');
+                                $uploadBenchmark = $uniqueEgressFailure ? null : Arr::get($result->benchmarks, 'upload');
                                 $uploadBenchmarkPassed = Arr::get($uploadBenchmark, 'passed', false);
                             @endphp
 
@@ -105,8 +135,12 @@
                             @endfilled
 
                             <p class="flex items-baseline gap-x-2">
-                                <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $upload[0] }}</span>
-                                <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $upload[1].'ps' }}</span>
+                                @if ($uniqueEgressFailure)
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('general.not_measured') }}</span>
+                                @else
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $upload[0] }}</span>
+                                    <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $upload[1].'ps' }}</span>
+                                @endif
                             </p>
                         </x-filament::section>
 
@@ -116,7 +150,7 @@
                             </x-slot>
 
                             @php
-                                $pingBenchmark = Arr::get($result->benchmarks, 'ping');
+                                $pingBenchmark = $uniqueEgressFailure ? null : Arr::get($result->benchmarks, 'ping');
                                 $pingBenchmarkPassed = Arr::get($pingBenchmark, 'passed', false);
                             @endphp
 
@@ -138,8 +172,12 @@
                             @endfilled
 
                             <p class="flex items-baseline gap-x-2">
-                                <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ round($result->ping, 2) }}</span>
-                                <span class="text-sm text-zinc-600 dark:text-zinc-400">ms</span>
+                                @if ($uniqueEgressFailure)
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('general.not_measured') }}</span>
+                                @else
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ round($result->ping, 2) }}</span>
+                                    <span class="text-sm text-zinc-600 dark:text-zinc-400">ms</span>
+                                @endif
                             </p>
                         </x-filament::section>
 
@@ -149,8 +187,12 @@
                             </x-slot>
 
                             <p class="flex items-baseline gap-x-2">
-                                <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ round($result->packet_loss, 2) }}</span>
-                                <span class="text-sm text-zinc-600 dark:text-zinc-400">%</span>
+                                @if ($uniqueEgressFailure)
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('general.not_measured') }}</span>
+                                @else
+                                    <span class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ round($result->packet_loss, 2) }}</span>
+                                    <span class="text-sm text-zinc-600 dark:text-zinc-400">%</span>
+                                @endif
                             </p>
                         </x-filament::section>
                     </div>

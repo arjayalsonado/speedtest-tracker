@@ -28,6 +28,8 @@ return [
         explode(',', env('SPEEDTEST_LITE_ISP_PROFILES', '')),
     )),
     'validate_source_ips' => $bool('SPEEDTEST_LITE_VALIDATE_SOURCE_IPS', true),
+    'unique_egress_required' => $bool('SPEEDTEST_LITE_UNIQUE_EGRESS_REQUIRED', false),
+    'unique_egress_window_minutes' => max(1, (int) env('SPEEDTEST_LITE_UNIQUE_EGRESS_WINDOW_MINUTES', 60)),
     'bind_interface' => env('SPEEDTEST_LITE_BIND_INTERFACE', 'eth0'),
     'bind_option' => env('SPEEDTEST_LITE_BIND_OPTION', '--interface'),
     'profiles' => $profiles,

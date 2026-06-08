@@ -4,7 +4,9 @@ namespace App\Jobs\Ookla;
 
 use App\Enums\ResultStatus;
 use App\Events\SpeedtestCompleted;
+use App\Events\SpeedtestFailed;
 use App\Models\Result;
+use App\Support\SpeedtestLite\UniqueEgressValidator;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -36,10 +38,28 @@ class CompleteSpeedtestJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->result->update([
+        $attributes = [
             'status' => ResultStatus::Completed,
-        ]);
+        ];
 
-        SpeedtestCompleted::dispatch($this->result);
+        // Set by RunIspProfileSpeedtest before CheckForScheduledSpeedtests dispatches the job chain.
+        if (filled(config('speedtest-lite.active_profile_key'))) {
+            $attributes['isp_profile_key'] = config('speedtest-lite.active_profile_key');
+            $attributes['isp_profile_name'] = config('speedtest-lite.active_profile_name');
+            $attributes['source_ip'] = config('speedtest-lite.active_source_ip');
+        }
+
+        $this->result->forceFill($attributes)->save();
+
+        $validator = app(UniqueEgressValidator::class);
+        $collision = $validator->findCollision($this->result->refresh());
+
+        if ($collision !== null) {
+            SpeedtestFailed::dispatch($validator->markFailed($this->result, $collision));
+
+            return;
+        }
+
+        SpeedtestCompleted::dispatch($this->result->refresh());
     }
 }
