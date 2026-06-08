@@ -6,6 +6,9 @@
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
+*.blade.php text eol=lf
+*.md text eol=lf
+*.php text eol=lf
 *.sh text eol=lf
 docker/mikrotik-lite/.env.mikrotik-lite text eol=lf
 docker/mikrotik-lite/*.conf text eol=lf

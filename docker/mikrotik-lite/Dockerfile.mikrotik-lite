@@ -63,7 +63,10 @@ RUN ARCH="$(uname -m)" && \
         aarch64) SPEEDTEST_PLATFORM="aarch64" ;; \
         *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
     esac && \
-    curl -o /tmp/speedtest-cli.tgz -L \
+    curl -fSLo /tmp/speedtest-cli.tgz \
+        --retry 5 \
+        --retry-delay 2 \
+        --retry-all-errors \
         "https://install.speedtest.net/app/cli/ookla-speedtest-${SPEEDTEST_VERSION}-linux-${SPEEDTEST_PLATFORM}.tgz" && \
     tar -xzf /tmp/speedtest-cli.tgz -C /usr/local/bin speedtest && \
     chmod +x /usr/local/bin/speedtest && \
