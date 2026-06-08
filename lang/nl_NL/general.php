@@ -61,9 +61,13 @@ return [
     'role' => 'Functie',
 
     // Date ranges
+    'last_1h' => 'Last 1 hour',
+    'last_6h' => 'Last 6 hours',
+    'last_12h' => 'Last 12 hours',
     'last_24h' => 'Afgelopen 24 uur',
     'last_week' => 'Vorige week',
     'last_month' => 'Vorige maand',
+    'last_year' => 'Last year',
 
     // Metrics
     'metrics' => 'Statistieken',
@@ -76,6 +80,9 @@ return [
     'not_measured' => 'Niet gemeten',
     'unhealthy' => 'Ongezond',
     'last_results' => 'Laatste resultaten',
+    'isp_profile' => 'ISP profile',
+    'isp_profile_last_results' => 'ISP Profile - :profile Last Results',
+    'all_profiles' => 'All profiles',
     'total_failed' => 'Totaal mislukte tests',
     'total_complted' => 'Totaal voltooide testen',
     'total' => 'Totaal',

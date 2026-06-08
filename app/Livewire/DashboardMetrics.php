@@ -2,59 +2,39 @@
 
 namespace App\Livewire;
 
-use App\Enums\ResultStatus;
 use App\Models\Result;
 use App\Support\SpeedtestLite\IspProfiles;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class LatestResultStats extends Component
+class DashboardMetrics extends Component
 {
-    #[Computed]
-    public function latestResult(): ?Result
-    {
-        return Result::where('status', ResultStatus::Completed)
-            ->latest()
-            ->first();
-    }
+    public string $ispProfileKey = 'all';
 
     #[Computed]
-    public function latestResults(): Collection
+    public function profileOptions(): array
     {
         $profiles = $this->configuredProfileOptions()
             ->union($this->storedProfileOptions())
             ->filter()
             ->unique();
 
-        if ($profiles->isEmpty()) {
-            return collect([
-                [
-                    'key' => null,
-                    'name' => null,
-                    'result' => $this->latestResult,
-                ],
-            ])->filter(fn (array $item): bool => $item['result'] instanceof Result);
-        }
+        return collect(['all' => __('general.all_profiles')])
+            ->merge($profiles)
+            ->all();
+    }
 
-        return $profiles
-            ->map(function (string $name, string $key): array {
-                return [
-                    'key' => $key,
-                    'name' => $name,
-                    'result' => Result::where('status', ResultStatus::Completed)
-                        ->where('isp_profile_key', $key)
-                        ->latest()
-                        ->first(),
-                ];
-            })
-            ->filter(fn (array $item): bool => $item['result'] instanceof Result)
-            ->values();
+    public function updatedIspProfileKey(string $value): void
+    {
+        if (! array_key_exists($value, $this->profileOptions)) {
+            $this->ispProfileKey = 'all';
+        }
     }
 
     public function render()
     {
-        return view('livewire.latest-result-stats');
+        return view('livewire.dashboard-metrics');
     }
 
     /**

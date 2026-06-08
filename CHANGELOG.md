@@ -2,6 +2,29 @@
 
 This file tracks consolidated repository changes for the MikroTik Lite experimental multi-ISP build and related repo patches.
 
+## 2026-06-08 - MikroTik Lite 0.2.0-b1.0 Guest Multi-ISP UI
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-0-UI`
+
+### Summary
+
+- Started the `0.2.0` feature line for profile-aware MikroTik Lite dashboard UI work.
+- Added dynamic guest-dashboard latest results per ISP profile.
+- Added a guest metrics ISP/profile selector that supports more than two profiles.
+- Extended chart ranges to include 1 hour, 6 hours, 12 hours, 24 hours, week, month, and year.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.0-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.2.0-b1.0-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
+### Deferred
+
+- Custom date range filtering.
+- Logged-in dashboard parity where useful.
+- Results table profile columns and filters.
+- Lite-build-aware version indicator.
+
 ## 2026-05-29 - MikroTik Lite b1.9 Patch Candidate
 
 Reference: `REF-CODELOAD-20260529-MIKROTIK-LITE-B1-9-PATCH`

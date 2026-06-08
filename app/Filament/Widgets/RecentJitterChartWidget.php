@@ -33,18 +33,13 @@ class RecentJitterChartWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $results = Result::query()
+        $query = Result::query()
             ->select(['id', 'data', 'created_at'])
-            ->where('status', '=', ResultStatus::Completed)
-            ->when($this->filter === '24h', function ($query) {
-                $query->where('created_at', '>=', now()->subDay());
-            })
-            ->when($this->filter === 'week', function ($query) {
-                $query->where('created_at', '>=', now()->subWeek());
-            })
-            ->when($this->filter === 'month', function ($query) {
-                $query->where('created_at', '>=', now()->subMonth());
-            })
+            ->where('status', '=', ResultStatus::Completed);
+
+        $this->applyDashboardChartFilters($query);
+
+        $results = $query
             ->orderBy('created_at')
             ->get();
 

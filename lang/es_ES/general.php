@@ -61,9 +61,13 @@ return [
     'role' => 'Rol',
 
     // Date ranges
+    'last_1h' => 'Last 1 hour',
+    'last_6h' => 'Last 6 hours',
+    'last_12h' => 'Last 12 hours',
     'last_24h' => 'Últimas 24 horas',
     'last_week' => 'Última semana',
     'last_month' => 'Último mes',
+    'last_year' => 'Last year',
 
     // Metrics
     'metrics' => 'Métricas',
@@ -76,6 +80,9 @@ return [
     'not_measured' => 'No medido',
     'unhealthy' => 'Poco saludable',
     'last_results' => 'Últimos resultados',
+    'isp_profile' => 'ISP profile',
+    'isp_profile_last_results' => 'ISP Profile - :profile Last Results',
+    'all_profiles' => 'All profiles',
     'total_failed' => 'Total de pruebas fallidas',
     'total_complted' => 'Total de pruebas completadas',
     'total' => 'Total',

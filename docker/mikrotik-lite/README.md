@@ -262,18 +262,25 @@ Do not store admin passwords in the image, README, local worklogs, RouterOS comm
 
 Local AI worklogs are intentionally not tracked in the public repository. Public release notes and operator documentation should stay in the changelog, this README, and the Docker Hub overview.
 
-## Pending UI Work
+## Multi-ISP UI Work
 
-The current `0.1.1-b1.9` build stores ISP/profile metadata in SQLite, but the dashboard remains profile-unaware. Existing charts combine completed results from all profiles.
+The `0.2.0-b1.0` feature line starts the profile-aware dashboard work for the MikroTik Lite multi-ISP variant.
 
-Pending feature work for the next feature line:
+Included in the first guest-dashboard pass:
+
+- Add dynamic latest-result sections per ISP profile.
+- Add a guest dashboard profile selector.
+- Filter dashboard chart queries by selected profile.
+- Add fixed chart ranges for 1 hour, 6 hours, 12 hours, 24 hours, week, month, and year.
+
+Pending follow-up work:
 
 - Add profile/source columns and filters to the Results table.
-- Add a dashboard profile selector.
-- Filter dashboard chart queries by selected profile.
-- Later, add per-profile chart series and latest-result summary cards.
+- Add custom date range filtering.
+- Add logged-in dashboard parity where useful.
+- Add a Lite-build-aware version indicator.
 
-Suggested feature version:
+Feature version:
 
 ```text
 0.2.0-b1.0-mikrotik-lite-multi-isp-arm64
