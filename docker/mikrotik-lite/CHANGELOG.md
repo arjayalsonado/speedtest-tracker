@@ -29,6 +29,27 @@ Reference: `REF-CODELOAD-20260529-MIKROTIK-LITE-B1-9-PATCH`
 - The runtime remains configurable through RouterOS envlists or `/config/.env`.
 - Existing deployments with explicit envlist values are not forced to adopt these defaults.
 
+## 2026-06-08 - b1.9 Promotion Closeout
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-B1-9-CLOSEOUT`
+
+### Summary
+
+- Accepted b1.9 as the promoted RouterOS build after extended stable runtime.
+- Confirmed official RouterOS naming:
+  - container: `app-speed`
+  - root directory: `usb1-part1/apps/speedtest/app-speedtest/root`
+  - envlist: `env-app-speed`
+  - mountlist: `mount-app-speed`
+  - interface: `veth-app-speed`
+- Promoted Docker Hub convenience tags to the validated b1.9 image.
+- Added public standalone repository publishing guidance.
+
+### Cleanup
+
+- Stale b1.4, b1.6, b1.7 SHA-test, and b1.9 SHA-test RouterOS roots were removed during operational cleanup.
+- b1.8 was retained temporarily as a local rollback and can now be removed when local rollback is no longer needed.
+
 ## Summary
 
 - Added multi-ISP profile support for Speedtest Tracker Lite.

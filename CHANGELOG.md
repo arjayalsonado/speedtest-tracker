@@ -23,6 +23,32 @@ Reference: `REF-CODELOAD-20260529-MIKROTIK-LITE-B1-9-PATCH`
 - Existing RouterOS envlist overrides can still set any valid per-profile cron values.
 - Docker Scout remediation should be tested as a separate b1.9 candidate image using a SHA-specific tag before any moving tag promotion.
 
+## 2026-06-08 - MikroTik Lite b1.9 Promotion Closeout
+
+Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-B1-9-CLOSEOUT`
+
+### Summary
+
+- Accepted b1.9 as the current promoted MikroTik Lite build after extended RouterOS runtime validation.
+- Confirmed the official RouterOS container is `app-speed` using the stable root directory.
+- Confirmed Docker Hub convenience tags point to the validated b1.9 image.
+- Removed public references to local `.ai` worklogs from operator documentation.
+- Added a standalone repository publishing checklist.
+
+### Current Tags
+
+- `rvncore/speedtest-tracker:0.1.1-b1.9-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.1.1-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:multi-isp-exp-arm64`
+- `rvncore/speedtest-tracker:latest`
+
+### Notes
+
+- Docker Hub immutable-tag protection uses:
+  - `.*-b.*-mikrotik-lite-multi-isp-arm64`
+- The retained b1.8 RouterOS rollback can be removed when local rollback is no longer desired.
+
 ## 2026-05-14 — `mikrotik-lite-multi-isp-exp`
 
 ### Summary

@@ -174,6 +174,18 @@ Adds/fixes:
 
 This example matches the validated style but is meant to be adjusted for your network. The storage name, bridge name, IPs, profile names, cron values, and memory cap are all configurable.
 
+### Storage Path Notes
+
+The validated setup uses `usb1-part1`, but this is only the RouterOS storage volume name used on the test device. Replace it everywhere with your own storage name, for example `usb1`, `disk1`, or another mounted storage device shown by RouterOS.
+
+Keep the persistent config path separate from the container root path:
+
+- Persistent data: `apps/speedtest/app-speedtest/config`
+- Official promoted container root: `apps/speedtest/app-speedtest/root`
+- Temporary test roots: `apps/speedtest/app-speedtest/root-<version-or-sha>`
+
+The SQLite database and application configuration should live under the `/config` mount so image/root cleanup does not remove runtime data.
+
 ### Example Variables
 
 - Storage: `usb1-part1`
@@ -290,14 +302,18 @@ Validated on:
 
 ## Tag Guidance
 
-### Known Good Tags
+### Current Tags
 
 - `0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64` - Exact RouterOS-tested current build
 - `0.1.1-b1.9-mikrotik-lite-multi-isp-arm64` - Current validated promoted b1.9 build tag
+
+### Rollback / Historical Tags
+
+- `0.1.1-b1.8-097ebfb-mikrotik-lite-multi-isp-arm64` - Previous upstream v1.14.3 baseline observation build
 - `0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64` - Previous RouterOS-tested rollback build
 - `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64` - Previous validated b1.7 rollback tag
-- `0.1.1-b1.6-mikrotik-lite-multi-isp-arm64` - Previous corrected baseline
-- `0.1.1-b1.4-mikrotik-lite-multi-isp-arm64` - Previous rollback build
+- `0.1.1-b1.6-mikrotik-lite-multi-isp-arm64` - Historical corrected baseline
+- `0.1.1-b1.4-mikrotik-lite-multi-isp-arm64` - Historical rollback baseline
 
 Avoid older experimental tags for new deployments.
 

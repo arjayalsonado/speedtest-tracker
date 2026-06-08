@@ -110,6 +110,18 @@ usb1-part1/apps/speedtest/app-speedtest/root
 usb1-part1/apps/speedtest/app-speedtest/config
 ```
 
+`usb1-part1` is the validated storage name from the test RouterOS device, not a hard requirement. Replace it with your own mounted storage name, such as `usb1`, `disk1`, or another storage device shown by RouterOS.
+
+Keep the stable promoted container root separate from temporary test roots:
+
+```text
+apps/speedtest/app-speedtest/root                 official promoted container
+apps/speedtest/app-speedtest/root-<version-sha>   temporary test or rollback container
+apps/speedtest/app-speedtest/config               persistent /config data
+```
+
+The SQLite database and application state should stay under the persistent `/config` mount so old image roots can be removed without deleting runtime data.
+
 Known stable RouterOS memory setting from validation:
 
 ```text
@@ -240,19 +252,19 @@ php artisan app:user-reset-password
 
 Follow the prompts to choose the user and set the new password. After changing it, sign out and sign back in through the web UI to verify the new credentials.
 
-Do not store admin passwords in the image, README, CODELOAD history, RouterOS comments, or screenshots.
+Do not store admin passwords in the image, README, local worklogs, RouterOS comments, or screenshots.
 
 ## Documentation and History
 
-- Detailed implementation and review history: `.ai/CODELOAD_HISTORY.md`
 - Repo-level changelog: `CHANGELOG.md`
 - Build-specific changelog: `docker/mikrotik-lite/CHANGELOG.md`
+- Standalone publishing checklist: `docs/STANDALONE_REPO_PUBLISHING.md`
 
-`CODELOAD_HISTORY.md` is an AI handoff and engineering worklog. It is not a replacement for release notes or operator documentation.
+Local AI worklogs are intentionally not tracked in the public repository. Public release notes and operator documentation should stay in the changelog, this README, and the Docker Hub overview.
 
 ## Pending UI Work
 
-The current `0.1.1-b1.4` build stores ISP/profile metadata in SQLite, but the dashboard remains profile-unaware. Existing charts combine completed results from all profiles.
+The current `0.1.1-b1.9` build stores ISP/profile metadata in SQLite, but the dashboard remains profile-unaware. Existing charts combine completed results from all profiles.
 
 Pending feature work for the next feature line:
 
