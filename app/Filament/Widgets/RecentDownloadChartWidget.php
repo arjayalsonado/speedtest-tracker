@@ -49,7 +49,10 @@ class RecentDownloadChartWidget extends ChartWidget
                     ],
                 ),
                 $this->averageDatasets($results, $completedResults->isNotEmpty() ? Average::averageDownload($completedResults) : null),
-                $this->notMeasuredDatasets($results),
+                $this->notMeasuredDatasets(
+                    results: $results,
+                    value: fn ($item) => ! blank($item->download) ? Number::bitsToMagnitude(bits: $item->download_bits, precision: 2, magnitude: 'mbit') : null,
+                ),
             ),
             'labels' => $this->chartLabels($results),
         ];
@@ -59,10 +62,7 @@ class RecentDownloadChartWidget extends ChartWidget
     {
         return [
             'plugins' => [
-                'legend' => [
-                    'display' => true,
-
-                ],
+                'legend' => $this->sharedLegendOptions(),
                 'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [

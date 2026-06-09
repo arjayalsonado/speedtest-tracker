@@ -123,18 +123,19 @@ trait HasChartFilters
      * @param  Collection<int, Result>  $results
      * @return array<string, mixed>
      */
-    protected function notMeasuredDataset(Collection $results): array
+    protected function notMeasuredDataset(Collection $results, Closure $value): array
     {
         return [
-            'type' => 'bar',
             'label' => __('general.not_measured'),
-            'data' => $results->map(fn (Result $result): ?int => UniqueEgressValidator::isFailure($result) ? 1 : null),
+            'data' => $this->notMeasuredPointData($results, $value),
             'backgroundColor' => 'rgba(245, 158, 11, 0.85)',
             'borderColor' => 'rgba(245, 158, 11, 1)',
-            'borderWidth' => 1,
-            'barThickness' => 4,
-            'borderSkipped' => false,
-            'yAxisID' => 'notMeasured',
+            'pointBackgroundColor' => 'rgba(245, 158, 11, 1)',
+            'pointBorderColor' => 'rgba(245, 158, 11, 1)',
+            'pointRadius' => $results->contains(fn (Result $result): bool => UniqueEgressValidator::isFailure($result)) ? 5 : 0,
+            'pointStyle' => 'rectRot',
+            'showLine' => false,
+            'fill' => false,
             'speedtestLiteNotMeasured' => true,
             'order' => 0,
         ];
@@ -165,6 +166,7 @@ trait HasChartFilters
                 data: $results->map(fn (Result $result) => $result->status === ResultStatus::Completed && $this->profileKey($result) === $profile['key'] ? $value($result) : null),
                 colors: $this->profileColors($profile['index']),
                 pointRadius: count($results) <= 24 ? 3 : 0,
+                profileKey: $profile['key'],
                 spanGaps: true,
             ))
             ->values()
@@ -201,10 +203,31 @@ trait HasChartFilters
                         colors: $this->metricProfileColors($profileColors, $metricIndex),
                         pointRadius: count($results) <= 24 ? 3 : 0,
                         fill: $metricIndex === 0,
+                        profileKey: $profile['key'],
                         spanGaps: true,
                     ))
                     ->all();
             })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, Result>  $results
+     * @param  Closure(Result): mixed  $value
+     * @return array<int, array<string, mixed>>
+     */
+    protected function profileSummaryDatasets(Collection $results, Closure $value): array
+    {
+        return $this->profileGroups($results)
+            ->map(fn (array $profile): array => $this->lineDataset(
+                label: $profile['name'],
+                data: $results->map(fn (Result $result) => $result->status === ResultStatus::Completed && $this->profileKey($result) === $profile['key'] ? $value($result) : null),
+                colors: $this->profileColors($profile['index']),
+                pointRadius: count($results) <= 24 ? 3 : 0,
+                profileKey: $profile['key'],
+                spanGaps: true,
+            ))
             ->values()
             ->all();
     }
@@ -238,10 +261,10 @@ trait HasChartFilters
      * @param  Collection<int, Result>  $results
      * @return array<int, array<string, mixed>>
      */
-    protected function notMeasuredDatasets(Collection $results): array
+    protected function notMeasuredDatasets(Collection $results, Closure $value): array
     {
         if (! $this->isAllProfilesChart()) {
-            return [$this->notMeasuredDataset($results)];
+            return [$this->notMeasuredDataset($results, $value)];
         }
 
         return $this->profileGroups($results)
@@ -249,15 +272,17 @@ trait HasChartFilters
                 $colors = $this->notMeasuredProfileColors($profile['index']);
 
                 return [
-                    'type' => 'bar',
                     'label' => "{$profile['name']} ".__('general.not_measured'),
-                    'data' => $results->map(fn (Result $result): ?int => $this->profileKey($result) === $profile['key'] && UniqueEgressValidator::isFailure($result) ? 1 : null),
+                    'data' => $this->notMeasuredPointData($results, $value, $profile['key']),
                     'backgroundColor' => $colors['backgroundColor'],
                     'borderColor' => $colors['borderColor'],
-                    'borderWidth' => 1,
-                    'barThickness' => 4,
-                    'borderSkipped' => false,
-                    'yAxisID' => 'notMeasured',
+                    'pointBackgroundColor' => $colors['borderColor'],
+                    'pointBorderColor' => $colors['borderColor'],
+                    'pointRadius' => $results->contains(fn (Result $result): bool => $this->profileKey($result) === $profile['key'] && UniqueEgressValidator::isFailure($result)) ? 5 : 0,
+                    'pointStyle' => 'rectRot',
+                    'showLine' => false,
+                    'fill' => false,
+                    'speedtestLiteProfileKey' => $profile['key'],
                     'speedtestLiteNotMeasured' => true,
                     'order' => 0,
                 ];
@@ -310,6 +335,38 @@ trait HasChartFilters
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    protected function sharedLegendOptions(): array
+    {
+        return [
+            'display' => true,
+            'onClick' => RawJs::make(<<<'JS'
+                function (event, legendItem, legend) {
+                    const chart = legend.chart;
+                    const clickedDataset = chart.data.datasets[legendItem.datasetIndex] || {};
+                    const profileKey = clickedDataset.speedtestLiteProfileKey;
+
+                    if (! profileKey) {
+                        Chart.defaults.plugins.legend.onClick.call(this, event, legendItem, legend);
+                        return;
+                    }
+
+                    const shouldHide = chart.isDatasetVisible(legendItem.datasetIndex);
+
+                    chart.data.datasets.forEach(function (dataset, datasetIndex) {
+                        if (dataset.speedtestLiteProfileKey === profileKey) {
+                            chart.getDatasetMeta(datasetIndex).hidden = shouldHide;
+                        }
+                    });
+
+                    chart.update();
+                }
+            JS),
+        ];
+    }
+
+    /**
      * @param  Collection<int, Result>  $results
      * @return Collection<int, array{key: string, name: string, index: int}>
      */
@@ -349,9 +406,9 @@ trait HasChartFilters
      * @param  array<string, string>  $colors
      * @return array<string, mixed>
      */
-    private function lineDataset(string $label, Collection $data, array $colors, int $pointRadius, bool $fill = true, bool $spanGaps = false): array
+    private function lineDataset(string $label, Collection $data, array $colors, int $pointRadius, bool $fill = true, ?string $profileKey = null, bool $spanGaps = false): array
     {
-        return [
+        $dataset = [
             'label' => $label,
             'data' => $data,
             'borderColor' => $colors['borderColor'],
@@ -363,6 +420,38 @@ trait HasChartFilters
             'pointRadius' => $pointRadius,
             'spanGaps' => $spanGaps,
         ];
+
+        if ($profileKey !== null) {
+            $dataset['speedtestLiteProfileKey'] = $profileKey;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * @return Collection<int, mixed>
+     */
+    private function notMeasuredPointData(Collection $results, Closure $value, ?string $profileKey = null): Collection
+    {
+        $lastMeasuredValue = null;
+
+        return $results->map(function (Result $result) use (&$lastMeasuredValue, $profileKey) {
+            if ($profileKey !== null && $this->profileKey($result) !== $profileKey) {
+                return null;
+            }
+
+            if ($result->status === ResultStatus::Completed) {
+                $lastMeasuredValue = $value($result) ?? $lastMeasuredValue;
+
+                return null;
+            }
+
+            if (UniqueEgressValidator::isFailure($result)) {
+                return $lastMeasuredValue;
+            }
+
+            return null;
+        });
     }
 
     /**

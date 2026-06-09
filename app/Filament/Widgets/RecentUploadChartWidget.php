@@ -49,7 +49,10 @@ class RecentUploadChartWidget extends ChartWidget
                     ],
                 ),
                 $this->averageDatasets($results, $completedResults->isNotEmpty() ? Average::averageUpload($completedResults) : null),
-                $this->notMeasuredDatasets($results),
+                $this->notMeasuredDatasets(
+                    results: $results,
+                    value: fn ($item) => ! blank($item->upload) ? Number::bitsToMagnitude(bits: $item->upload_bits, precision: 2, magnitude: 'mbit') : null,
+                ),
             ),
             'labels' => $this->chartLabels($results),
         ];
@@ -59,9 +62,7 @@ class RecentUploadChartWidget extends ChartWidget
     {
         return [
             'plugins' => [
-                'legend' => [
-                    'display' => true,
-                ],
+                'legend' => $this->sharedLegendOptions(),
                 'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [

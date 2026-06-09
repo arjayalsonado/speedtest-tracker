@@ -35,36 +35,41 @@ class RecentJitterChartWidget extends ChartWidget
 
         return [
             'datasets' => array_merge(
-                $this->multiMetricDatasets($results, [
-                    [
-                        'label' => __('general.download_ms'),
-                        'value' => fn ($item) => $item->download_jitter,
-                        'colors' => [
-                            'borderColor' => 'rgba(14, 165, 233)',
-                            'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
-                            'pointBackgroundColor' => 'rgba(14, 165, 233)',
+                $this->isAllProfilesChart()
+                    ? $this->profileSummaryDatasets($results, fn ($item) => $item->ping_jitter)
+                    : $this->multiMetricDatasets($results, [
+                        [
+                            'label' => __('general.download_ms'),
+                            'value' => fn ($item) => $item->download_jitter,
+                            'colors' => [
+                                'borderColor' => 'rgba(14, 165, 233)',
+                                'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
+                                'pointBackgroundColor' => 'rgba(14, 165, 233)',
+                            ],
                         ],
-                    ],
-                    [
-                        'label' => __('general.upload_ms'),
-                        'value' => fn ($item) => $item->upload_jitter,
-                        'colors' => [
-                            'borderColor' => 'rgba(139, 92, 246)',
-                            'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
-                            'pointBackgroundColor' => 'rgba(139, 92, 246)',
+                        [
+                            'label' => __('general.upload_ms'),
+                            'value' => fn ($item) => $item->upload_jitter,
+                            'colors' => [
+                                'borderColor' => 'rgba(139, 92, 246)',
+                                'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
+                                'pointBackgroundColor' => 'rgba(139, 92, 246)',
+                            ],
                         ],
-                    ],
-                    [
-                        'label' => __('general.ping_ms_label'),
-                        'value' => fn ($item) => $item->ping_jitter,
-                        'colors' => [
-                            'borderColor' => 'rgba(16, 185, 129)',
-                            'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
-                            'pointBackgroundColor' => 'rgba(16, 185, 129)',
+                        [
+                            'label' => __('general.ping_ms_label'),
+                            'value' => fn ($item) => $item->ping_jitter,
+                            'colors' => [
+                                'borderColor' => 'rgba(16, 185, 129)',
+                                'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                                'pointBackgroundColor' => 'rgba(16, 185, 129)',
+                            ],
                         ],
-                    ],
-                ]),
-                $this->notMeasuredDatasets($results),
+                    ]),
+                $this->notMeasuredDatasets(
+                    results: $results,
+                    value: fn ($item) => $this->isAllProfilesChart() ? $item->ping_jitter : $item->download_jitter,
+                ),
             ),
             'labels' => $this->chartLabels($results),
         ];
@@ -74,9 +79,7 @@ class RecentJitterChartWidget extends ChartWidget
     {
         return [
             'plugins' => [
-                'legend' => [
-                    'display' => true,
-                ],
+                'legend' => $this->sharedLegendOptions(),
                 'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [

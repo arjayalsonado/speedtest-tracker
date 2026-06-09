@@ -48,7 +48,10 @@ class RecentPingChartWidget extends ChartWidget
                     ],
                 ),
                 $this->averageDatasets($results, $completedResults->isNotEmpty() ? Average::averagePing($completedResults) : null),
-                $this->notMeasuredDatasets($results),
+                $this->notMeasuredDatasets(
+                    results: $results,
+                    value: fn ($item) => $item->ping,
+                ),
             ),
             'labels' => $this->chartLabels($results),
         ];
@@ -58,9 +61,7 @@ class RecentPingChartWidget extends ChartWidget
     {
         return [
             'plugins' => [
-                'legend' => [
-                    'display' => true,
-                ],
+                'legend' => $this->sharedLegendOptions(),
                 'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [

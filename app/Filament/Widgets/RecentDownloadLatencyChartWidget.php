@@ -35,36 +35,41 @@ class RecentDownloadLatencyChartWidget extends ChartWidget
 
         return [
             'datasets' => array_merge(
-                $this->multiMetricDatasets($results, [
-                    [
-                        'label' => __('general.average_ms'),
-                        'value' => fn ($item) => $item->download_latency_iqm,
-                        'colors' => [
-                            'borderColor' => 'rgba(16, 185, 129)',
-                            'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
-                            'pointBackgroundColor' => 'rgba(16, 185, 129)',
+                $this->isAllProfilesChart()
+                    ? $this->profileSummaryDatasets($results, fn ($item) => $item->download_latency_iqm)
+                    : $this->multiMetricDatasets($results, [
+                        [
+                            'label' => __('general.average_ms'),
+                            'value' => fn ($item) => $item->download_latency_iqm,
+                            'colors' => [
+                                'borderColor' => 'rgba(16, 185, 129)',
+                                'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                                'pointBackgroundColor' => 'rgba(16, 185, 129)',
+                            ],
                         ],
-                    ],
-                    [
-                        'label' => __('general.high_ms'),
-                        'value' => fn ($item) => $item->download_latency_high,
-                        'colors' => [
-                            'borderColor' => 'rgba(14, 165, 233)',
-                            'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
-                            'pointBackgroundColor' => 'rgba(14, 165, 233)',
+                        [
+                            'label' => __('general.high_ms'),
+                            'value' => fn ($item) => $item->download_latency_high,
+                            'colors' => [
+                                'borderColor' => 'rgba(14, 165, 233)',
+                                'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
+                                'pointBackgroundColor' => 'rgba(14, 165, 233)',
+                            ],
                         ],
-                    ],
-                    [
-                        'label' => __('general.low_ms'),
-                        'value' => fn ($item) => $item->download_latency_low,
-                        'colors' => [
-                            'borderColor' => 'rgba(139, 92, 246)',
-                            'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
-                            'pointBackgroundColor' => 'rgba(139, 92, 246)',
+                        [
+                            'label' => __('general.low_ms'),
+                            'value' => fn ($item) => $item->download_latency_low,
+                            'colors' => [
+                                'borderColor' => 'rgba(139, 92, 246)',
+                                'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
+                                'pointBackgroundColor' => 'rgba(139, 92, 246)',
+                            ],
                         ],
-                    ],
-                ]),
-                $this->notMeasuredDatasets($results),
+                    ]),
+                $this->notMeasuredDatasets(
+                    results: $results,
+                    value: fn ($item) => $item->download_latency_iqm,
+                ),
             ),
             'labels' => $this->chartLabels($results),
         ];
@@ -74,9 +79,7 @@ class RecentDownloadLatencyChartWidget extends ChartWidget
     {
         return [
             'plugins' => [
-                'legend' => [
-                    'display' => true,
-                ],
+                'legend' => $this->sharedLegendOptions(),
                 'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [
