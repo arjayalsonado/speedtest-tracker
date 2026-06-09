@@ -268,7 +268,7 @@ trait HasChartFilters
         }
 
         return $this->profileGroups($results)
-            ->map(function (array $profile) use ($results): array {
+            ->map(function (array $profile) use ($results, $value): array {
                 $colors = $this->notMeasuredProfileColors($profile['index']);
 
                 return [
@@ -435,7 +435,7 @@ trait HasChartFilters
     {
         $lastMeasuredValue = null;
 
-        return $results->map(function (Result $result) use (&$lastMeasuredValue, $profileKey) {
+        return $results->map(function (Result $result) use (&$lastMeasuredValue, $profileKey, $value) {
             if ($profileKey !== null && $this->profileKey($result) !== $profileKey) {
                 return null;
             }
