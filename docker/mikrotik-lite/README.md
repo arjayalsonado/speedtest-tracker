@@ -194,6 +194,8 @@ isp2 | PLDT | 192.168.99.251 | external_ip=112.208.182.118 | isp=PLDT
 
 When `SPEEDTEST_LITE_UNIQUE_EGRESS_REQUIRED=true`, each completed profile run is compared with recent completed runs from the other enabled profiles. If the same external IP appears on two different profiles within `SPEEDTEST_LITE_UNIQUE_EGRESS_WINDOW_MINUTES`, the current run is marked failed as a likely failover or load-balance collision. This prevents fallback traffic from being graphed as a healthy result for the wrong ISP path.
 
+Existing deployments with a persistent `/config/.env` will not automatically inherit new image defaults. Add new runtime values to the RouterOS envlist or `/config/.env`, then restart the container.
+
 ## Timeout Behavior
 
 Do not use scheduler-level timeout chaining in `routes/console.php`.

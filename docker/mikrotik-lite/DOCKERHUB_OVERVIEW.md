@@ -20,18 +20,18 @@ Public release notes are tracked in the project repository. Some implementation 
 
 ## Recommended Tags
 
-- `rvncore/speedtest-tracker:0.1.1-b1.9-mikrotik-lite-multi-isp-arm64`
-- `rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.2.0-b1.2-mikrotik-lite-multi-isp-arm64`
+- `rvncore/speedtest-tracker:0.2.0-b1.2-ceebb83-mikrotik-lite-multi-isp-arm64`
 
 For repeatable deployments, prefer the pinned build tag:
 
-`rvncore/speedtest-tracker:0.1.1-b1.9-mikrotik-lite-multi-isp-arm64`
+`rvncore/speedtest-tracker:0.2.0-b1.2-mikrotik-lite-multi-isp-arm64`
 
 For exact build traceability, use the source-SHA tag:
 
-`rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64`
+`rvncore/speedtest-tracker:0.2.0-b1.2-ceebb83-mikrotik-lite-multi-isp-arm64`
 
-Moving tags such as `latest`, `multi-isp-exp-arm64`, and `0.1.1-mikrotik-lite-multi-isp-arm64` currently point to the validated b1.9 build. For repeatable deployments, prefer a pinned build tag or source-SHA tag.
+Moving tags such as `latest`, `multi-isp-exp-arm64`, and `0.2.0-mikrotik-lite-multi-isp-arm64` should point to the validated b1.2 build after promotion. For repeatable deployments, prefer a pinned build tag or source-SHA tag.
 
 ## Key Features
 
@@ -45,6 +45,9 @@ Moving tags such as `latest`, `multi-isp-exp-arm64`, and `0.1.1-mikrotik-lite-mu
 - RouterOS/container interface source-IP validation
 - Supports multiple source profiles; validated with two ISP paths
 - 30-minute per-profile staggered schedules used in the validated setup, configurable via env
+- Profile-aware guest dashboard latest results and metrics filtering
+- External IP display in Last Results for egress confirmation
+- Optional unique-egress validation to flag failover/load-balance collisions
 - Tested on MikroTik hAP ax3 RouterOS containers
 
 ## Configurable Runtime Values
@@ -67,6 +70,16 @@ The runtime is configured through Docker/RouterOS environment values or the pers
 - `SPEEDTEST_LITE_ISP_PROFILES`
   - Comma-separated list of profile keys.
   - Example: `isp1,isp2`
+
+- `SPEEDTEST_LITE_UNIQUE_EGRESS_REQUIRED`
+  - Enables dynamic external-IP collision detection across enabled profiles.
+  - Common value for multi-ISP RouterOS testing: `true`
+
+- `SPEEDTEST_LITE_UNIQUE_EGRESS_WINDOW_MINUTES`
+  - Recent-result comparison window used by unique-egress validation.
+  - Common value for 30-minute staggered two-profile schedules: `60`
+
+Existing deployments with a persistent `/config/.env` will not automatically inherit new image defaults. Add new runtime values to the RouterOS envlist or `/config/.env`, then restart the container.
 
 ### Per-Profile Examples
 
@@ -149,6 +162,19 @@ Adds/fixes:
 - Removed the fixable nginx critical CVE reported by Docker Scout
 - Retained the PHP 8.4 / Alpine 3.22 runtime baseline to limit functional change
 
+### `0.2.0-b1.2` - Current validated feature build
+
+Validated on RouterOS after overnight observation with unique-egress validation active.
+
+Adds/fixes:
+
+- Profile-aware guest dashboard latest results
+- Guest dashboard ISP/profile selector and shared chart range selector
+- External IP display in Last Results for visual egress confirmation
+- Optional unique-egress validation for failover/load-balance collision detection
+- Collision results are marked failed so fallback traffic is not graphed as the wrong ISP path
+- Confirmed overnight healthy run with CNVG and PLDT using distinct external IPs
+
 ## Planned Work
 
 ### Runtime Stabilization
@@ -158,7 +184,9 @@ Adds/fixes:
 
 ### Future Feature Line
 
-- Add profile-aware dashboard and results UI so multi-profile data can be viewed and compared directly in the web interface.
+- Add profile/source columns and filters to the Results table.
+- Add custom date range filtering.
+- Add logged-in dashboard parity where useful.
 - Add a Lite-build-aware version check alongside the upstream Speedtest Tracker version check.
 
 ## Typical RouterOS Use Case
@@ -242,6 +270,8 @@ Create the environment list. Adjust profile names, source IPs, and cron values f
 /container/envs/add list=env-app-speed key=SPEEDTEST_LITE_BIND_OPTION value="--ip"
 /container/envs/add list=env-app-speed key=SPEEDTEST_LITE_BIND_INTERFACE value="veth-app-speed"
 /container/envs/add list=env-app-speed key=SPEEDTEST_LITE_ISP_PROFILES value="isp1,isp2"
+/container/envs/add list=env-app-speed key=SPEEDTEST_LITE_UNIQUE_EGRESS_REQUIRED value="true"
+/container/envs/add list=env-app-speed key=SPEEDTEST_LITE_UNIQUE_EGRESS_WINDOW_MINUTES value="60"
 /container/envs/add list=env-app-speed key=MIKROTIK_SCHEDULER_STARTUP_GRACE_SECONDS value="300"
 
 /container/envs/add list=env-app-speed key=SPEEDTEST_LITE_ISP1_ENABLED value="true"
@@ -260,7 +290,7 @@ Create the environment list. Adjust profile names, source IPs, and cron values f
 For first validation, prefer the exact source-SHA build tag. For repeatable deployments, use the promoted pinned build tag. Use `latest` only if you intentionally want the current promoted build.
 
 ```
-/container/add remote-image=rvncore/speedtest-tracker:0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64 interface=veth-app-speed root-dir=usb1-part1/apps/speedtest/app-speedtest/root mountlists=mount-app-speed envlist=env-app-speed memory-high=192M logging=yes start-on-boot=no name=app-speed
+/container/add remote-image=rvncore/speedtest-tracker:0.2.0-b1.2-ceebb83-mikrotik-lite-multi-isp-arm64 interface=veth-app-speed root-dir=usb1-part1/apps/speedtest/app-speedtest/root mountlists=mount-app-speed envlist=env-app-speed memory-high=192M logging=yes start-on-boot=no name=app-speed
 /container/start app-speed
 ```
 
@@ -304,11 +334,13 @@ Validated on:
 
 ### Current Tags
 
-- `0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64` - Exact RouterOS-tested current build
-- `0.1.1-b1.9-mikrotik-lite-multi-isp-arm64` - Current validated promoted b1.9 build tag
+- `0.2.0-b1.2-ceebb83-mikrotik-lite-multi-isp-arm64` - Exact RouterOS-tested current feature build
+- `0.2.0-b1.2-mikrotik-lite-multi-isp-arm64` - Current validated promoted b1.2 build tag
 
 ### Rollback / Historical Tags
 
+- `0.1.1-b1.9-28d2629-mikrotik-lite-multi-isp-arm64` - Previous stable promoted build
+- `0.1.1-b1.9-mikrotik-lite-multi-isp-arm64` - Previous stable promoted b1.9 build tag
 - `0.1.1-b1.8-097ebfb-mikrotik-lite-multi-isp-arm64` - Previous upstream v1.14.3 baseline observation build
 - `0.1.1-b1.7-c7ab9c6-mikrotik-lite-multi-isp-arm64` - Previous RouterOS-tested rollback build
 - `0.1.1-b1.7-mikrotik-lite-multi-isp-arm64` - Previous validated b1.7 rollback tag
@@ -321,4 +353,4 @@ Use pinned version tags for production-like deployments. Use `latest` only if yo
 
 ## Status
 
-Experimental but field-tested on MikroTik hAP ax3 model `C53UiG+5HPaxD2HPaxD` running RouterOS 7.22.1 stable.
+Experimental but field-tested on MikroTik hAP ax3 model `C53UiG+5HPaxD2HPaxD` running RouterOS 7.22.1 stable. Current validated feature build: `0.2.0-b1.2-ceebb83`.

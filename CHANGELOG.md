@@ -17,6 +17,12 @@ Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-2-UNIQUE-EGRESS`
 
 - `rvncore/speedtest-tracker:0.2.0-b1.2-<source-sha>-mikrotik-lite-multi-isp-arm64`
 
+### Validation
+
+- RouterOS overnight observation passed with unique-egress validation active.
+- CNVG and PLDT remained on distinct external IPs through the observed schedule window.
+- Existing deployments must add the new unique-egress env values to RouterOS envlist or persistent `/config/.env`, then restart.
+
 ## 2026-06-08 - MikroTik Lite 0.2.0-b1.1 Guest UI Feedback Patch
 
 Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-1-UI-FEEDBACK`
