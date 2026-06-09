@@ -266,17 +266,15 @@ trait HasChartFilters
 
         return $this->profileGroups($results)
             ->map(function (array $profile) use ($results, $value): array {
-                $colors = $this->notMeasuredProfileColors($profile['index']);
-
                 return [
                     'label' => "{$profile['name']} ".__('general.not_measured'),
                     'data' => $this->notMeasuredPointData($results, $value, $profile['key']),
-                    'backgroundColor' => $colors['backgroundColor'],
-                    'borderColor' => $colors['borderColor'],
-                    'pointBackgroundColor' => $colors['borderColor'],
-                    'pointBorderColor' => $colors['borderColor'],
+                    'backgroundColor' => 'rgba(245, 158, 11, 0.85)',
+                    'borderColor' => 'rgba(245, 158, 11, 1)',
+                    'pointBackgroundColor' => 'rgba(245, 158, 11, 1)',
+                    'pointBorderColor' => 'rgba(245, 158, 11, 1)',
                     'pointRadius' => $results->contains(fn (Result $result): bool => $this->profileKey($result) === $profile['key'] && UniqueEgressValidator::isFailure($result)) ? 5 : 0,
-                    'pointStyle' => 'rectRot',
+                    'pointStyle' => $this->notMeasuredPointStyle($profile['index']),
                     'showLine' => false,
                     'fill' => false,
                     'speedtestLiteProfileKey' => $profile['key'],
@@ -338,32 +336,9 @@ trait HasChartFilters
     {
         return [
             'display' => true,
-            'onClick' => RawJs::make(<<<'JS'
-                function (event, legendItem, legend) {
-                    const chart = legend.chart;
-                    const clickedDataset = chart.data.datasets[legendItem.datasetIndex] || {};
-                    const profileKey = clickedDataset.speedtestLiteProfileKey;
-
-                    if (! profileKey) {
-                        chart.setDatasetVisibility(
-                            legendItem.datasetIndex,
-                            ! chart.isDatasetVisible(legendItem.datasetIndex)
-                        );
-                        chart.update();
-                        return;
-                    }
-
-                    const shouldShow = ! chart.isDatasetVisible(legendItem.datasetIndex);
-
-                    chart.data.datasets.forEach(function (dataset, datasetIndex) {
-                        if (dataset.speedtestLiteProfileKey === profileKey) {
-                            chart.setDatasetVisibility(datasetIndex, shouldShow);
-                        }
-                    });
-
-                    chart.update();
-                }
-            JS),
+            'labels' => [
+                'usePointStyle' => true,
+            ],
         ];
     }
 
@@ -380,6 +355,7 @@ trait HasChartFilters
                 'key' => $key,
                 'name' => $this->profileName($profileResults->first()),
             ])
+            ->sortKeys()
             ->values()
             ->map(fn (array $profile, int $index): array => $profile + ['index' => $index]);
     }
@@ -524,25 +500,17 @@ trait HasChartFilters
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    private function notMeasuredProfileColors(int $index): array
+    private function notMeasuredPointStyle(int $index): string
     {
-        $palette = [
-            '245, 158, 11',
-            '251, 191, 36',
-            '249, 115, 22',
-            '234, 179, 8',
-            '251, 146, 60',
-            '217, 119, 6',
+        $styles = [
+            'rect',
+            'rectRot',
+            'triangle',
+            'crossRot',
+            'star',
+            'circle',
         ];
 
-        $rgb = $palette[$index % count($palette)];
-
-        return [
-            'backgroundColor' => "rgba({$rgb}, 0.85)",
-            'borderColor' => "rgba({$rgb}, 1)",
-        ];
+        return $styles[$index % count($styles)];
     }
 }
