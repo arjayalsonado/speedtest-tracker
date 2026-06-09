@@ -163,11 +163,10 @@ trait HasChartFilters
         return $this->profileGroups($results)
             ->map(fn (array $profile): array => $this->lineDataset(
                 label: $profile['name'],
-                data: $results->map(fn (Result $result) => $result->status === ResultStatus::Completed && $this->profileKey($result) === $profile['key'] ? $value($result) : null),
+                data: $this->profileMeasuredData($results, $profile['key'], $value),
                 colors: $this->profileColors($profile['index']),
                 pointRadius: count($results) <= 24 ? 3 : 0,
                 profileKey: $profile['key'],
-                spanGaps: true,
             ))
             ->values()
             ->all();
@@ -199,12 +198,11 @@ trait HasChartFilters
                 return collect($series)
                     ->map(fn (array $metric, int $metricIndex): array => $this->lineDataset(
                         label: "{$profile['name']} {$metric['label']}",
-                        data: $results->map(fn (Result $result) => $result->status === ResultStatus::Completed && $this->profileKey($result) === $profile['key'] ? $metric['value']($result) : null),
+                        data: $this->profileMeasuredData($results, $profile['key'], $metric['value']),
                         colors: $this->metricProfileColors($profileColors, $metricIndex),
                         pointRadius: count($results) <= 24 ? 3 : 0,
                         fill: $metricIndex === 0,
                         profileKey: $profile['key'],
-                        spanGaps: true,
                     ))
                     ->all();
             })
@@ -222,11 +220,10 @@ trait HasChartFilters
         return $this->profileGroups($results)
             ->map(fn (array $profile): array => $this->lineDataset(
                 label: $profile['name'],
-                data: $results->map(fn (Result $result) => $result->status === ResultStatus::Completed && $this->profileKey($result) === $profile['key'] ? $value($result) : null),
+                data: $this->profileMeasuredData($results, $profile['key'], $value),
                 colors: $this->profileColors($profile['index']),
                 pointRadius: count($results) <= 24 ? 3 : 0,
                 profileKey: $profile['key'],
-                spanGaps: true,
             ))
             ->values()
             ->all();
@@ -348,15 +345,19 @@ trait HasChartFilters
                     const profileKey = clickedDataset.speedtestLiteProfileKey;
 
                     if (! profileKey) {
-                        Chart.defaults.plugins.legend.onClick.call(this, event, legendItem, legend);
+                        chart.setDatasetVisibility(
+                            legendItem.datasetIndex,
+                            ! chart.isDatasetVisible(legendItem.datasetIndex)
+                        );
+                        chart.update();
                         return;
                     }
 
-                    const shouldHide = chart.isDatasetVisible(legendItem.datasetIndex);
+                    const shouldShow = ! chart.isDatasetVisible(legendItem.datasetIndex);
 
                     chart.data.datasets.forEach(function (dataset, datasetIndex) {
                         if (dataset.speedtestLiteProfileKey === profileKey) {
-                            chart.getDatasetMeta(datasetIndex).hidden = shouldHide;
+                            chart.setDatasetVisibility(datasetIndex, shouldShow);
                         }
                     });
 
@@ -426,6 +427,33 @@ trait HasChartFilters
         }
 
         return $dataset;
+    }
+
+    /**
+     * @return Collection<int, mixed>
+     */
+    private function profileMeasuredData(Collection $results, string $profileKey, Closure $value): Collection
+    {
+        $lastMeasuredValue = null;
+        $profileInFailure = false;
+
+        return $results
+            ->map(function (Result $result) use ($profileKey, $value, &$lastMeasuredValue, &$profileInFailure) {
+                if ($this->profileKey($result) !== $profileKey) {
+                    return $profileInFailure ? null : $lastMeasuredValue;
+                }
+
+                if ($result->status !== ResultStatus::Completed) {
+                    $profileInFailure = true;
+
+                    return null;
+                }
+
+                $lastMeasuredValue = $value($result);
+                $profileInFailure = false;
+
+                return $lastMeasuredValue;
+            });
     }
 
     /**
