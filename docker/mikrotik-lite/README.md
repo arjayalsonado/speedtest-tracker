@@ -280,6 +280,7 @@ Included in the first guest-dashboard pass:
 - Filter dashboard chart queries by selected profile.
 - Add fixed chart ranges for 1 hour, 6 hours, 12 hours, 24 hours, week, month, and year.
 - Show unique-egress failures as downtime/failover in Last Results.
+- Show unique-egress failures as `Not measured` chart markers without graphing failover speed as valid ISP data.
 
 Pending follow-up work:
 
@@ -291,5 +292,5 @@ Pending follow-up work:
 Current test feature version:
 
 ```text
-0.2.0-b1.2-mikrotik-lite-multi-isp-arm64
+0.2.0-b1.3-mikrotik-lite-multi-isp-arm64
 ```

@@ -6,7 +6,6 @@ use App\Enums\ResultStatus;
 use App\Filament\Widgets\Concerns\HasChartFilters;
 use App\Helpers\Average;
 use App\Helpers\Number;
-use App\Models\Result;
 use Filament\Widgets\ChartWidget;
 
 class RecentDownloadChartWidget extends ChartWidget
@@ -35,21 +34,14 @@ class RecentDownloadChartWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $query = Result::query()
-            ->select(['id', 'download', 'created_at'])
-            ->where('status', '=', ResultStatus::Completed);
-
-        $this->applyDashboardChartFilters($query);
-
-        $results = $query
-            ->orderBy('created_at')
-            ->get();
+        $results = $this->dashboardChartResults(['download']);
+        $completedResults = $this->completedChartResults($results);
 
         return [
             'datasets' => [
                 [
                     'label' => __('general.download'),
-                    'data' => $results->map(fn ($item) => ! blank($item->download) ? Number::bitsToMagnitude(bits: $item->download_bits, precision: 2, magnitude: 'mbit') : null),
+                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed && ! blank($item->download) ? Number::bitsToMagnitude(bits: $item->download_bits, precision: 2, magnitude: 'mbit') : null),
                     'borderColor' => 'rgba(14, 165, 233)',
                     'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
                     'pointBackgroundColor' => 'rgba(14, 165, 233)',
@@ -60,7 +52,7 @@ class RecentDownloadChartWidget extends ChartWidget
                 ],
                 [
                     'label' => __('general.average'),
-                    'data' => array_fill(0, count($results), Average::averageDownload($results)),
+                    'data' => array_fill(0, count($results), Average::averageDownload($completedResults)),
                     'borderColor' => 'rgb(243, 7, 6, 1)',
                     'pointBackgroundColor' => 'rgb(243, 7, 6, 1)',
                     'fill' => false,
@@ -68,8 +60,9 @@ class RecentDownloadChartWidget extends ChartWidget
                     'tension' => 0.4,
                     'pointRadius' => 0,
                 ],
+                $this->notMeasuredDataset($results),
             ],
-            'labels' => $results->map(fn ($item) => $item->created_at->timezone(config('app.display_timezone'))->format(config('app.chart_datetime_format'))),
+            'labels' => $this->chartLabels($results),
         ];
     }
 
@@ -81,18 +74,14 @@ class RecentDownloadChartWidget extends ChartWidget
                     'display' => true,
 
                 ],
-                'tooltip' => [
-                    'enabled' => true,
-                    'mode' => 'index',
-                    'intersect' => false,
-                    'position' => 'nearest',
-                ],
+                'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [
                 'y' => [
                     'beginAtZero' => config('app.chart_begin_at_zero'),
                     'grace' => 2,
                 ],
+                'notMeasured' => $this->notMeasuredScaleOptions(),
             ],
         ];
     }

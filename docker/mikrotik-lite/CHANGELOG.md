@@ -7,6 +7,21 @@ Branch: `mikrotik-lite-multi-isp-exp`
 
 This changelog tracks the v1.2.1 experimental MikroTik Lite multi-ISP build changes and patches that were implemented from the archive documentation.
 
+## 2026-06-09 - 0.2.0-b1.3 Chart Downtime Markers
+
+Reference: `REF-CODELOAD-20260609-MIKROTIK-LITE-0-2-0-B1-3-CHART-DOWNTIME`
+
+### Summary
+
+- Added chart-level `Not measured` markers for unique-egress failed rows.
+- Reuses the existing dashboard charts rather than replacing the graph surface.
+- Keeps failed/failover speedtest payloads out of measured speed, latency, jitter, and average lines.
+- Adds amber overlay markers so week/month views can show invalid ISP cycles clearly.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.3-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
 ## 2026-06-08 - 0.2.0-b1.2 Unique Egress Validation
 
 Reference: `REF-CODELOAD-20260608-MIKROTIK-LITE-0-2-0-B1-2-UNIQUE-EGRESS`

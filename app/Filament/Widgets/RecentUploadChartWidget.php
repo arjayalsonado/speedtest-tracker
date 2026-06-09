@@ -6,7 +6,6 @@ use App\Enums\ResultStatus;
 use App\Filament\Widgets\Concerns\HasChartFilters;
 use App\Helpers\Average;
 use App\Helpers\Number;
-use App\Models\Result;
 use Filament\Widgets\ChartWidget;
 
 class RecentUploadChartWidget extends ChartWidget
@@ -35,21 +34,14 @@ class RecentUploadChartWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $query = Result::query()
-            ->select(['id', 'upload', 'created_at'])
-            ->where('status', '=', ResultStatus::Completed);
-
-        $this->applyDashboardChartFilters($query);
-
-        $results = $query
-            ->orderBy('created_at')
-            ->get();
+        $results = $this->dashboardChartResults(['upload']);
+        $completedResults = $this->completedChartResults($results);
 
         return [
             'datasets' => [
                 [
                     'label' => __('general.upload'),
-                    'data' => $results->map(fn ($item) => ! blank($item->upload) ? Number::bitsToMagnitude(bits: $item->upload_bits, precision: 2, magnitude: 'mbit') : null),
+                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed && ! blank($item->upload) ? Number::bitsToMagnitude(bits: $item->upload_bits, precision: 2, magnitude: 'mbit') : null),
                     'borderColor' => 'rgba(139, 92, 246)',
                     'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
                     'pointBackgroundColor' => 'rgba(139, 92, 246)',
@@ -60,7 +52,7 @@ class RecentUploadChartWidget extends ChartWidget
                 ],
                 [
                     'label' => __('general.average'),
-                    'data' => array_fill(0, count($results), Average::averageUpload($results)),
+                    'data' => array_fill(0, count($results), Average::averageUpload($completedResults)),
                     'borderColor' => 'rgb(243, 7, 6, 1)',
                     'pointBackgroundColor' => 'rgb(243, 7, 6, 1)',
                     'fill' => false,
@@ -68,8 +60,9 @@ class RecentUploadChartWidget extends ChartWidget
                     'tension' => 0.4,
                     'pointRadius' => 0,
                 ],
+                $this->notMeasuredDataset($results),
             ],
-            'labels' => $results->map(fn ($item) => $item->created_at->timezone(config('app.display_timezone'))->format(config('app.chart_datetime_format'))),
+            'labels' => $this->chartLabels($results),
         ];
     }
 
@@ -80,18 +73,14 @@ class RecentUploadChartWidget extends ChartWidget
                 'legend' => [
                     'display' => true,
                 ],
-                'tooltip' => [
-                    'enabled' => true,
-                    'mode' => 'index',
-                    'intersect' => false,
-                    'position' => 'nearest',
-                ],
+                'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [
                 'y' => [
                     'beginAtZero' => config('app.chart_begin_at_zero'),
                     'grace' => 2,
                 ],
+                'notMeasured' => $this->notMeasuredScaleOptions(),
             ],
         ];
     }

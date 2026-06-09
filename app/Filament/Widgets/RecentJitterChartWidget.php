@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Enums\ResultStatus;
 use App\Filament\Widgets\Concerns\HasChartFilters;
-use App\Models\Result;
 use Filament\Widgets\ChartWidget;
 
 class RecentJitterChartWidget extends ChartWidget
@@ -33,21 +32,13 @@ class RecentJitterChartWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $query = Result::query()
-            ->select(['id', 'data', 'created_at'])
-            ->where('status', '=', ResultStatus::Completed);
-
-        $this->applyDashboardChartFilters($query);
-
-        $results = $query
-            ->orderBy('created_at')
-            ->get();
+        $results = $this->dashboardChartResults(['data']);
 
         return [
             'datasets' => [
                 [
                     'label' => __('general.download_ms'),
-                    'data' => $results->map(fn ($item) => $item->download_jitter),
+                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed ? $item->download_jitter : null),
                     'borderColor' => 'rgba(14, 165, 233)',
                     'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
                     'pointBackgroundColor' => 'rgba(14, 165, 233)',
@@ -58,7 +49,7 @@ class RecentJitterChartWidget extends ChartWidget
                 ],
                 [
                     'label' => __('general.upload_ms'),
-                    'data' => $results->map(fn ($item) => $item->upload_jitter),
+                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed ? $item->upload_jitter : null),
                     'borderColor' => 'rgba(139, 92, 246)',
                     'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
                     'pointBackgroundColor' => 'rgba(139, 92, 246)',
@@ -69,7 +60,7 @@ class RecentJitterChartWidget extends ChartWidget
                 ],
                 [
                     'label' => __('general.ping_ms_label'),
-                    'data' => $results->map(fn ($item) => $item->ping_jitter),
+                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed ? $item->ping_jitter : null),
                     'borderColor' => 'rgba(16, 185, 129)',
                     'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
                     'pointBackgroundColor' => 'rgba(16, 185, 129)',
@@ -78,8 +69,9 @@ class RecentJitterChartWidget extends ChartWidget
                     'tension' => 0.4,
                     'pointRadius' => count($results) <= 24 ? 3 : 0,
                 ],
+                $this->notMeasuredDataset($results),
             ],
-            'labels' => $results->map(fn ($item) => $item->created_at->timezone(config('app.display_timezone'))->format(config('app.chart_datetime_format'))),
+            'labels' => $this->chartLabels($results),
         ];
     }
 
@@ -90,17 +82,13 @@ class RecentJitterChartWidget extends ChartWidget
                 'legend' => [
                     'display' => true,
                 ],
-                'tooltip' => [
-                    'enabled' => true,
-                    'mode' => 'index',
-                    'intersect' => false,
-                    'position' => 'nearest',
-                ],
+                'tooltip' => $this->sharedTooltipOptions(),
             ],
             'scales' => [
                 'y' => [
                     'beginAtZero' => config('app.chart_begin_at_zero'),
                 ],
+                'notMeasured' => $this->notMeasuredScaleOptions(),
             ],
         ];
     }
