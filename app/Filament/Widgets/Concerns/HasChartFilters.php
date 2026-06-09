@@ -264,7 +264,7 @@ trait HasChartFilters
             return [$this->notMeasuredDataset($results, $value)];
         }
 
-        return $this->profileGroups($results)
+        $datasets = $this->profileGroups($results)
             ->map(function (array $profile) use ($results, $value): array {
                 return [
                     'label' => "{$profile['name']} ".__('general.not_measured'),
@@ -279,11 +279,16 @@ trait HasChartFilters
                     'fill' => false,
                     'speedtestLiteProfileKey' => $profile['key'],
                     'speedtestLiteNotMeasured' => true,
+                    'speedtestLiteHideFromLegend' => true,
                     'order' => 0,
                 ];
             })
             ->values()
             ->all();
+
+        $datasets[] = $this->notMeasuredLegendDataset($results);
+
+        return $datasets;
     }
 
     /**
@@ -338,7 +343,47 @@ trait HasChartFilters
             'display' => true,
             'labels' => [
                 'usePointStyle' => true,
+                'boxWidth' => 8,
+                'boxHeight' => 8,
+                'pointStyleWidth' => 8,
+                'padding' => 14,
+                'filter' => RawJs::make(<<<'JS'
+                    function (legendItem, chartData) {
+                        const dataset = chartData.datasets[legendItem.datasetIndex] || {};
+
+                        return ! dataset.speedtestLiteHideFromLegend;
+                    }
+                JS),
             ],
+            'onClick' => RawJs::make(<<<'JS'
+                function (event, legendItem, legend) {
+                    const chart = legend.chart;
+                    const clickedDataset = chart.data.datasets[legendItem.datasetIndex] || {};
+
+                    if (clickedDataset.speedtestLiteLegendOnly) {
+                        return;
+                    }
+
+                    if (! clickedDataset.speedtestLiteProfileKey) {
+                        chart.setDatasetVisibility(
+                            legendItem.datasetIndex,
+                            ! chart.isDatasetVisible(legendItem.datasetIndex)
+                        );
+                        chart.update();
+                        return;
+                    }
+
+                    const shouldShow = ! chart.isDatasetVisible(legendItem.datasetIndex);
+
+                    chart.data.datasets.forEach(function (dataset, datasetIndex) {
+                        if (dataset.speedtestLiteProfileKey === clickedDataset.speedtestLiteProfileKey) {
+                            chart.setDatasetVisibility(datasetIndex, shouldShow);
+                        }
+                    });
+
+                    chart.update();
+                }
+            JS),
         ];
     }
 
@@ -403,6 +448,27 @@ trait HasChartFilters
         }
 
         return $dataset;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function notMeasuredLegendDataset(Collection $results): array
+    {
+        return [
+            'label' => __('general.not_measured'),
+            'data' => $results->map(fn (): null => null),
+            'backgroundColor' => 'rgba(245, 158, 11, 0.85)',
+            'borderColor' => 'rgba(245, 158, 11, 1)',
+            'pointBackgroundColor' => 'rgba(245, 158, 11, 1)',
+            'pointBorderColor' => 'rgba(245, 158, 11, 1)',
+            'pointRadius' => 0,
+            'pointStyle' => 'circle',
+            'showLine' => false,
+            'fill' => false,
+            'speedtestLiteLegendOnly' => true,
+            'order' => 0,
+        ];
     }
 
     /**
