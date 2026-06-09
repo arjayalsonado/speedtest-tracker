@@ -281,16 +281,19 @@ Included in the first guest-dashboard pass:
 - Add fixed chart ranges for 1 hour, 6 hours, 12 hours, 24 hours, week, month, and year.
 - Show unique-egress failures as downtime/failover in Last Results.
 - Show unique-egress failures as `Not measured` chart markers without graphing failover speed as valid ISP data.
+- In `All profiles`, show separate chart datasets per ISP profile instead of one merged metric line.
+- In single-profile views, keep the existing metric color scheme and average line.
 
 Pending follow-up work:
 
 - Add profile/source columns and filters to the Results table.
 - Add custom date range filtering.
 - Add logged-in dashboard parity where useful.
+- Add optional admin/user customization for ISP profile chart colors.
 - Add a Lite-build-aware version indicator.
 
 Current test feature version:
 
 ```text
-0.2.0-b1.3-mikrotik-lite-multi-isp-arm64
+0.2.0-b1.4-mikrotik-lite-multi-isp-arm64
 ```

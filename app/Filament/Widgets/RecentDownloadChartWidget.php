@@ -2,7 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\ResultStatus;
 use App\Filament\Widgets\Concerns\HasChartFilters;
 use App\Helpers\Average;
 use App\Helpers\Number;
@@ -38,30 +37,20 @@ class RecentDownloadChartWidget extends ChartWidget
         $completedResults = $this->completedChartResults($results);
 
         return [
-            'datasets' => [
-                [
-                    'label' => __('general.download'),
-                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed && ! blank($item->download) ? Number::bitsToMagnitude(bits: $item->download_bits, precision: 2, magnitude: 'mbit') : null),
-                    'borderColor' => 'rgba(14, 165, 233)',
-                    'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
-                    'pointBackgroundColor' => 'rgba(14, 165, 233)',
-                    'fill' => true,
-                    'cubicInterpolationMode' => 'monotone',
-                    'tension' => 0.4,
-                    'pointRadius' => count($results) <= 24 ? 3 : 0,
-                ],
-                [
-                    'label' => __('general.average'),
-                    'data' => array_fill(0, count($results), Average::averageDownload($completedResults)),
-                    'borderColor' => 'rgb(243, 7, 6, 1)',
-                    'pointBackgroundColor' => 'rgb(243, 7, 6, 1)',
-                    'fill' => false,
-                    'cubicInterpolationMode' => 'monotone',
-                    'tension' => 0.4,
-                    'pointRadius' => 0,
-                ],
-                $this->notMeasuredDataset($results),
-            ],
+            'datasets' => array_merge(
+                $this->measuredDatasets(
+                    results: $results,
+                    label: __('general.download'),
+                    value: fn ($item) => ! blank($item->download) ? Number::bitsToMagnitude(bits: $item->download_bits, precision: 2, magnitude: 'mbit') : null,
+                    colors: [
+                        'borderColor' => 'rgba(14, 165, 233)',
+                        'backgroundColor' => 'rgba(14, 165, 233, 0.1)',
+                        'pointBackgroundColor' => 'rgba(14, 165, 233)',
+                    ],
+                ),
+                $this->averageDatasets($results, $completedResults->isNotEmpty() ? Average::averageDownload($completedResults) : null),
+                $this->notMeasuredDatasets($results),
+            ),
             'labels' => $this->chartLabels($results),
         ];
     }

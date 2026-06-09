@@ -7,6 +7,22 @@ Branch: `mikrotik-lite-multi-isp-exp`
 
 This changelog tracks the v1.2.1 experimental MikroTik Lite multi-ISP build changes and patches that were implemented from the archive documentation.
 
+## 2026-06-09 - 0.2.0-b1.4 Profile-Split Dashboard Charts
+
+Reference: `REF-CODELOAD-20260609-MIKROTIK-LITE-0-2-0-B1-4-PROFILE-CHART-SPLIT`
+
+### Summary
+
+- Changed `All profiles` dashboard charts from merged metric lines to separate ISP profile datasets.
+- Added stable automatic profile colors so CNVG/PLDT/etc. can be visually distinguished on the same chart.
+- Kept single-profile chart views on the existing metric color scheme with average lines.
+- Changed not-measured markers to be profile-specific in `All profiles` mode.
+- Hides the global average line in `All profiles` mode to reduce chart clutter.
+
+### Planned Image Tag
+
+- `rvncore/speedtest-tracker:0.2.0-b1.4-<source-sha>-mikrotik-lite-multi-isp-arm64`
+
 ## 2026-06-09 - 0.2.0-b1.3 Chart Downtime Markers
 
 Reference: `REF-CODELOAD-20260609-MIKROTIK-LITE-0-2-0-B1-3-CHART-DOWNTIME`

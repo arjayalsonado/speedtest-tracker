@@ -2,7 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\ResultStatus;
 use App\Filament\Widgets\Concerns\HasChartFilters;
 use App\Helpers\Average;
 use Filament\Widgets\ChartWidget;
@@ -37,30 +36,20 @@ class RecentPingChartWidget extends ChartWidget
         $completedResults = $this->completedChartResults($results);
 
         return [
-            'datasets' => [
-                [
-                    'label' => __('general.ping'),
-                    'data' => $results->map(fn ($item) => $item->status === ResultStatus::Completed ? $item->ping : null),
-                    'borderColor' => 'rgba(16, 185, 129)',
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
-                    'pointBackgroundColor' => 'rgba(16, 185, 129)',
-                    'fill' => true,
-                    'cubicInterpolationMode' => 'monotone',
-                    'tension' => 0.4,
-                    'pointRadius' => count($results) <= 24 ? 3 : 0,
-                ],
-                [
-                    'label' => __('general.average'),
-                    'data' => array_fill(0, count($results), Average::averagePing($completedResults)),
-                    'borderColor' => 'rgb(243, 7, 6, 1)',
-                    'pointBackgroundColor' => 'rgb(243, 7, 6, 1)',
-                    'fill' => false,
-                    'cubicInterpolationMode' => 'monotone',
-                    'tension' => 0.4,
-                    'pointRadius' => 0,
-                ],
-                $this->notMeasuredDataset($results),
-            ],
+            'datasets' => array_merge(
+                $this->measuredDatasets(
+                    results: $results,
+                    label: __('general.ping'),
+                    value: fn ($item) => $item->ping,
+                    colors: [
+                        'borderColor' => 'rgba(16, 185, 129)',
+                        'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                        'pointBackgroundColor' => 'rgba(16, 185, 129)',
+                    ],
+                ),
+                $this->averageDatasets($results, $completedResults->isNotEmpty() ? Average::averagePing($completedResults) : null),
+                $this->notMeasuredDatasets($results),
+            ),
             'labels' => $this->chartLabels($results),
         ];
     }
